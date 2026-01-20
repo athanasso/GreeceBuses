@@ -83,7 +83,12 @@ export default function LineDetailsScreen() {
         onPress={() => {
           router.push({
             pathname: '/stop/[stopCode]',
-            params: { stopCode: item.StopCode, stopName: item.StopDescr }
+            params: { 
+              stopCode: item.StopCode, 
+              stopName: item.StopDescr,
+              stopLat: item.StopLat,
+              stopLng: item.StopLng,
+            }
           });
         }}
         activeOpacity={0.7}

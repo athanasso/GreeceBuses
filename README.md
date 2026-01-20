@@ -3,7 +3,7 @@
 A modern React Native mobile app for tracking Athens public transportation in real-time. Built with Expo and powered by the OASA Telematics API.
 
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue)
-![Expo](https://img.shields.io/badge/Expo-SDK%2052-black)
+![Expo](https://img.shields.io/badge/Expo-SDK%2054-black)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## Features
@@ -22,6 +22,8 @@ A modern React Native mobile app for tracking Athens public transportation in re
 - Real-time arrival predictions
 - Timetable schedules with departure/return times
 - Navigate to line details from any stop
+- **Share stop** - Share stop location via native share sheet
+- **Get directions** - Open Google Maps for walking directions to the stop
 
 ### 🚌 Bus Lines
 
@@ -43,7 +45,7 @@ A modern React Native mobile app for tracking Athens public transportation in re
 
 ## Tech Stack
 
-- **Framework**: [Expo](https://expo.dev) (SDK 52)
+- **Framework**: [Expo](https://expo.dev) (SDK 54)
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (file-based routing)
 - **State Management**: [TanStack Query](https://tanstack.com/query) (React Query)
 - **UI Components**: Custom components with [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)

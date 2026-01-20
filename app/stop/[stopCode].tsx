@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { MotiView } from 'moti';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
+    Linking,
+    Platform,
+    Share,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -19,12 +23,69 @@ import { useRoutesForStop, useStopArrivals } from '@/lib/queries';
 import type { StopArrival } from '@/lib/types';
 
 export default function StopDetailsScreen() {
-  const { stopCode, stopName } = useLocalSearchParams<{ stopCode: string; stopName: string }>();
+  const { stopCode, stopName, stopLat, stopLng } = useLocalSearchParams<{ 
+    stopCode: string; 
+    stopName: string;
+    stopLat?: string;
+    stopLng?: string;
+  }>();
   const router = useRouter();
   const { theme: colorScheme } = useTheme();
   const { localize, t } = useLanguage();
   const colors = Colors[colorScheme];
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Open Google Maps for directions
+  const openDirections = useCallback(() => {
+    if (!stopLat || !stopLng) {
+      Alert.alert('Location unavailable', 'Stop coordinates are not available.');
+      return;
+    }
+    
+    const lat = parseFloat(stopLat);
+    const lng = parseFloat(stopLng);
+    
+    // Google Maps URL that works on both platforms
+    const url = Platform.select({
+      ios: `comgooglemaps://?daddr=${lat},${lng}&directionsmode=walking`,
+      android: `google.navigation:q=${lat},${lng}&mode=w`,
+    });
+    
+    const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
+    
+    // Try to open native Google Maps first, fall back to web
+    Linking.canOpenURL(url!).then((supported) => {
+      if (supported) {
+        Linking.openURL(url!);
+      } else {
+        Linking.openURL(webUrl);
+      }
+    }).catch(() => {
+      Linking.openURL(webUrl);
+    });
+  }, [stopLat, stopLng, stopName, stopCode]);
+
+  // Share stop location
+  const shareStop = useCallback(async () => {
+    if (!stopLat || !stopLng) {
+      Alert.alert('Location unavailable', 'Stop coordinates are not available.');
+      return;
+    }
+    
+    const lat = parseFloat(stopLat);
+    const lng = parseFloat(stopLng);
+    const displayName = stopName || `Stop ${stopCode}`;
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    
+    try {
+      await Share.share({
+        message: `${displayName}\n${mapsUrl}`,
+        title: displayName,
+      });
+    } catch (error) {
+      console.error('Error sharing:', error);
+    }
+  }, [stopLat, stopLng, stopName, stopCode]);
 
   // Fetch data
   const { data: arrivals } = useStopArrivals(stopCode);
@@ -158,9 +219,27 @@ export default function StopDetailsScreen() {
 
       {/* Stop info header */}
       <View style={styles.stopHeader}>
-        <View style={styles.calendarBadge}>
-          <Ionicons name="calendar-outline" size={18} color={colors.text} />
-          <Text style={[styles.stopCodeText, { color: colors.text }]}>{stopCode}</Text>
+        <View style={styles.stopHeaderTop}>
+          <View style={styles.calendarBadge}>
+            <Ionicons name="calendar-outline" size={18} color={colors.text} />
+            <Text style={[styles.stopCodeText, { color: colors.text }]}>{stopCode}</Text>
+          </View>
+          {stopLat && stopLng && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                onPress={shareStop} 
+                style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+              >
+                <Ionicons name="share-outline" size={18} color={colors.accent} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={openDirections} 
+                style={[styles.actionButton, { backgroundColor: colors.accent }]}
+              >
+                <Ionicons name="navigate" size={18} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
         <Text style={[styles.stopName, { color: colors.text }]}>
           {stopName || `Stop ${stopCode}`}
@@ -221,6 +300,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#333',
   },
+  stopHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
   calendarBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -230,7 +327,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 20,
     gap: 6,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
   },

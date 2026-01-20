@@ -12,6 +12,9 @@ import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import React, { forwardRef, useCallback, useMemo, useState } from 'react';
 import {
+    Linking,
+    Platform,
+    Share,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -89,6 +92,50 @@ export const ArrivalsSheet = forwardRef<BottomSheet, ArrivalsSheetProps>(
       setIsFavorite(!isFavorite);
       // TODO: Save to AsyncStorage
     };
+
+    // Open Google Maps for directions
+    const openDirections = useCallback(() => {
+      if (!stop?.StopLat || !stop?.StopLng) return;
+      
+      const lat = parseFloat(stop.StopLat);
+      const lng = parseFloat(stop.StopLng);
+      
+      const url = Platform.select({
+        ios: `comgooglemaps://?daddr=${lat},${lng}&directionsmode=walking`,
+        android: `google.navigation:q=${lat},${lng}&mode=w`,
+      });
+      
+      const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
+      
+      Linking.canOpenURL(url!).then((supported) => {
+        if (supported) {
+          Linking.openURL(url!);
+        } else {
+          Linking.openURL(webUrl);
+        }
+      }).catch(() => {
+        Linking.openURL(webUrl);
+      });
+    }, [stop, localize]);
+
+    // Share stop location
+    const shareStop = useCallback(async () => {
+      if (!stop?.StopLat || !stop?.StopLng) return;
+      
+      const lat = parseFloat(stop.StopLat);
+      const lng = parseFloat(stop.StopLng);
+      const displayName = localize(stop.StopDescrEng, stop.StopDescr) || `Stop ${stop.StopCode}`;
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      
+      try {
+        await Share.share({
+          message: `${displayName}\n${mapsUrl}`,
+          title: displayName,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    }, [stop, localize]);
 
     const formatTime = (minutes: number): string => {
       if (minutes < 1) return 'Now';
@@ -365,7 +412,9 @@ export const ArrivalsSheet = forwardRef<BottomSheet, ArrivalsSheetProps>(
                       pathname: '/stop/[stopCode]',
                       params: { 
                         stopCode: stop.StopCode, 
-                        stopName: localize(stop.StopDescrEng, stop.StopDescr) 
+                        stopName: localize(stop.StopDescrEng, stop.StopDescr),
+                        stopLat: stop.StopLat,
+                        stopLng: stop.StopLng,
                       }
                     });
                   }}
@@ -381,16 +430,30 @@ export const ArrivalsSheet = forwardRef<BottomSheet, ArrivalsSheetProps>(
                   </Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity 
-                  style={[styles.favoriteButton, { backgroundColor: isFavorite ? colors.accent : colors.card }]}
-                  onPress={toggleFavorite}
-                >
-                  <Ionicons 
-                    name={isFavorite ? 'heart' : 'heart-outline'} 
-                    size={22} 
-                    color={isFavorite ? '#fff' : colors.accent} 
-                  />
-                </TouchableOpacity>
+                <View style={styles.headerActions}>
+                  <TouchableOpacity 
+                    style={[styles.actionButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={shareStop}
+                  >
+                    <Ionicons name="share-outline" size={18} color={colors.accent} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.actionButton, { backgroundColor: colors.accent, borderColor: colors.accent }]}
+                    onPress={openDirections}
+                  >
+                    <Ionicons name="navigate" size={18} color="#fff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.favoriteButton, { backgroundColor: isFavorite ? colors.accent : colors.card }]}
+                    onPress={toggleFavorite}
+                  >
+                    <Ionicons 
+                      name={isFavorite ? 'heart' : 'heart-outline'} 
+                      size={18} 
+                      color={isFavorite ? '#fff' : colors.accent} 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Section title */}
@@ -482,8 +545,25 @@ const styles = StyleSheet.create({
   stopStreet: {
     fontSize: 14,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
   favoriteButton: {
-    padding: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   linesBadges: {
     flexDirection: 'row',

@@ -28,7 +28,7 @@ export function SettingsModal({
   const colors = Colors[theme];
 
   const handleGithubPress = () => {
-    Linking.openURL('https://github.com/athanasso');
+    Linking.openURL('https://github.com/athanasso/AthensBuses');
   };
 
   return (

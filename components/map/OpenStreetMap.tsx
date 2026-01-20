@@ -37,48 +37,47 @@ export interface OpenStreetMapRef {
   centerOnLocation: (lat: number, lng: number) => void;
 }
 
-export const OpenStreetMap = forwardRef<OpenStreetMapRef, OpenStreetMapProps>(
-  (
-    {
-      center,
-      zoom = 15,
-      markers = [],
-      userLocation,
-      onMarkerPress,
-      onMapReady,
-      onRegionChange,
-      darkMode = true,
-    },
-    ref
-  ) => {
-    const webViewRef = useRef<WebView>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [mapReady, setMapReady] = useState(false);
+function OpenStreetMapComponent(
+  {
+    center,
+    zoom = 15,
+    markers = [],
+    userLocation,
+    onMarkerPress,
+    onMapReady,
+    onRegionChange,
+    darkMode = true,
+  }: OpenStreetMapProps,
+  ref: React.Ref<OpenStreetMapRef>
+) {
+  const webViewRef = useRef<WebView>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mapReady, setMapReady] = useState(false);
 
-    // Expose centerOnLocation method to parent
-    useImperativeHandle(
-      ref,
-      () => ({
-        centerOnLocation: (lat: number, lng: number) => {
-          if (mapReady && webViewRef.current) {
-            webViewRef.current.injectJavaScript(`
+  // Expose centerOnLocation method to parent
+  useImperativeHandle(
+    ref,
+    () => ({
+      centerOnLocation: (lat: number, lng: number) => {
+        if (mapReady && webViewRef.current) {
+          webViewRef.current.injectJavaScript(`
           map.flyTo({ center: [${lng}, ${lat}], zoom: 15 });
           true;
         `);
-          }
-        },
-      }),
-      [mapReady]
-    );
+        }
+      },
+    }),
+    [mapReady]
+  );
 
-    // MapTiler style - streets for light mode, streets-dark for dark mode (Google Maps-like appearance)
-    const mapStyle = darkMode
-      ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_API_KEY}`
-      : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
+  // MapTiler style - streets for light mode, streets-dark for dark mode (Google Maps-like appearance)
+  const mapStyle = darkMode
+    ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_API_KEY}`
+    : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
 
-    // Memoize the initial HTML - only recreate when center/zoom/darkMode changes
-    const mapHtml = useMemo(() => {
-      return `<!DOCTYPE html>
+  // Memoize the initial HTML - only recreate when center/zoom/darkMode changes
+  const mapHtml = useMemo(() => {
+    return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -206,8 +205,8 @@ export const OpenStreetMap = forwardRef<OpenStreetMapRef, OpenStreetMapProps>(
     
     // Track last reported center to avoid unnecessary updates
     var lastReportedCenter = { lat: ${center.latitude}, lng: ${
-        center.longitude
-      } };
+      center.longitude
+    } };
     
     // Calculate distance between two points in meters (Haversine formula)
     function getDistance(lat1, lng1, lat2, lng2) {
@@ -239,87 +238,88 @@ export const OpenStreetMap = forwardRef<OpenStreetMapRef, OpenStreetMapProps>(
   </script>
 </body>
 </html>`;
-    }, [center.latitude, center.longitude, zoom, darkMode, mapStyle]);
+  }, [center.latitude, center.longitude, zoom, darkMode, mapStyle]);
 
-    // Update markers when they change
-    useEffect(() => {
-      if (mapReady && webViewRef.current) {
-        const markersJson = JSON.stringify(markers);
-        const userLocJson = userLocation
-          ? JSON.stringify(userLocation)
-          : "null";
+  // Update markers when they change
+  useEffect(() => {
+    if (mapReady && webViewRef.current) {
+      const markersJson = JSON.stringify(markers);
+      const userLocJson = userLocation ? JSON.stringify(userLocation) : "null";
 
-        webViewRef.current.injectJavaScript(`
+      webViewRef.current.injectJavaScript(`
         updateMarkers(${markersJson}, ${userLocJson});
         true;
       `);
-      }
-    }, [markers, userLocation, mapReady]);
+    }
+  }, [markers, userLocation, mapReady]);
 
-    // Center map on user location when it first becomes available
-    const hasInitialCentered = useRef(false);
-    useEffect(() => {
-      if (
-        mapReady &&
-        userLocation &&
-        webViewRef.current &&
-        !hasInitialCentered.current
-      ) {
-        hasInitialCentered.current = true;
-        webViewRef.current.injectJavaScript(`
+  // Center map on user location when it first becomes available
+  const hasInitialCentered = useRef(false);
+  useEffect(() => {
+    if (
+      mapReady &&
+      userLocation &&
+      webViewRef.current &&
+      !hasInitialCentered.current
+    ) {
+      hasInitialCentered.current = true;
+      webViewRef.current.injectJavaScript(`
         map.flyTo({ center: [${userLocation.longitude}, ${userLocation.latitude}], zoom: 15 });
         true;
       `);
-      }
-    }, [mapReady, userLocation]);
+    }
+  }, [mapReady, userLocation]);
 
-    const handleMessage = useCallback(
-      (event: any) => {
-        try {
-          const data = JSON.parse(event.nativeEvent.data);
-          if (data.type === "markerPress" && onMarkerPress) {
-            onMarkerPress(data.id);
-          } else if (data.type === "mapReady") {
-            setIsLoading(false);
-            setMapReady(true);
-            onMapReady?.();
-          } else if (data.type === "regionChange" && onRegionChange) {
-            onRegionChange({
-              latitude: data.latitude,
-              longitude: data.longitude,
-            });
-          }
-        } catch (e) {
-          // Silently ignore parse errors
+  const handleMessage = useCallback(
+    (event: any) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+        if (data.type === "markerPress" && onMarkerPress) {
+          onMarkerPress(data.id);
+        } else if (data.type === "mapReady") {
+          setIsLoading(false);
+          setMapReady(true);
+          onMapReady?.();
+        } else if (data.type === "regionChange" && onRegionChange) {
+          onRegionChange({
+            latitude: data.latitude,
+            longitude: data.longitude,
+          });
         }
-      },
-      [onMarkerPress, onMapReady, onRegionChange]
-    );
+      } catch {
+        // Silently ignore parse errors
+      }
+    },
+    [onMarkerPress, onMapReady, onRegionChange]
+  );
 
-    return (
-      <View style={styles.container}>
-        <WebView
-          ref={webViewRef}
-          source={{ html: mapHtml }}
-          style={styles.webview}
-          onMessage={handleMessage}
-          javaScriptEnabled
-          domStorageEnabled
-          startInLoadingState
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          scrollEnabled={false}
-          bounces={false}
-          overScrollMode="never"
-        />
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#8B5CF6" />
-          </View>
-        )}
-      </View>
-    );
-  }
+  return (
+    <View style={styles.container}>
+      <WebView
+        ref={webViewRef}
+        source={{ html: mapHtml }}
+        style={styles.webview}
+        onMessage={handleMessage}
+        javaScriptEnabled
+        domStorageEnabled
+        startInLoadingState
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEnabled={false}
+        bounces={false}
+        overScrollMode="never"
+      />
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#8B5CF6" />
+        </View>
+      )}
+    </View>
+  );
+}
+
+export const OpenStreetMap = forwardRef<OpenStreetMapRef, OpenStreetMapProps>(
+  OpenStreetMapComponent
 );
 
 const styles = StyleSheet.create({

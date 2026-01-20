@@ -84,7 +84,7 @@ A modern React Native mobile app for tracking Athens public transportation in re
 
    Then edit `.env` and add your MapTiler API key:
 
-   ```
+   ```env
    EXPO_PUBLIC_MAPTILER_API_KEY=your_maptiler_api_key
    ```
 
@@ -115,7 +115,7 @@ eas build --platform ios
 
 ## Project Structure
 
-```
+```text
 ├── app/                    # Expo Router pages
 │   ├── (tabs)/            # Tab navigation screens
 │   │   ├── index.tsx      # Stops/Map screen
@@ -152,8 +152,8 @@ This app uses the [OASA Telematics API](https://telematics.oasa.gr/) to fetch:
 
 ## Screenshots
 
-| Map Screen | Lines Screen | Stop Details |
-|------------|--------------|--------------|
+| Map Screen                     | Lines Screen          | Stop Details             |
+|--------------------------------|-----------------------|--------------------------|
 | Interactive map with bus stops | Searchable lines list | Live arrivals & schedule |
 
 ## Contributing

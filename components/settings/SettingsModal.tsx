@@ -187,7 +187,7 @@ export function SettingsModal({
               <View style={styles.aboutCard}>
                 <Ionicons name="code-slash" size={32} color={colors.accent} style={{ marginBottom: 8 }} />
                 <Text style={[styles.devName, { color: colors.text }]}>{t.developedBy} athanasso</Text>
-                <Text style={[styles.version, { color: colors.textSecondary }]}>{t.version} 1.0.0</Text>
+                <Text style={[styles.version, { color: colors.textSecondary }]}>{t.version} 1.0.1</Text>
                 
                 <TouchableOpacity 
                   style={[styles.githubButton, { backgroundColor: colors.card }]}

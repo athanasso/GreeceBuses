@@ -35,19 +35,26 @@ interface TicketInfo {
 
   // Card technical info
   cardType: string;
+  cardKind: string; // "Plastic personalised" or "Plastic anonymous"
   manufacturer: string;
   capacity: string;
   productionDate: string;
 
   // Ticket info (may be unavailable if encrypted)
   tripsRemaining: number | "unlimited" | "encrypted";
-  activeProduct: ProductInfo | null;
-  expiredProduct: ProductInfo | null;
+  activeProducts: ProductInfo[];
+  expiredProducts: ProductInfo[];
+  unusedProducts: ProductInfo[];
   userCategory: string;
   isActive: boolean;
   remainingTimeSeconds: number;
   expiryDate: string | null;
   loadDate: string | null;
+  cashBalance: number; // in euros
+
+  // Legacy fields for compatibility
+  activeProduct: ProductInfo | null;
+  expiredProduct: ProductInfo | null;
 
   // Status flags
   isEncrypted: boolean;
@@ -56,9 +63,11 @@ interface TicketInfo {
 
 interface ProductInfo {
   name: string;
-  status?: "active" | "expired" | "inactive";
+  fareType: string;
+  status: "active" | "expired" | "unused";
   validUntil?: Date;
   trips?: number;
+  productCode?: number;
 }
 
 // DESFire version data parser
@@ -137,6 +146,50 @@ const USER_CATEGORIES: { [key: number]: string } = {
   0x80: "University student",
 };
 
+// ATH.ENA Product/Fare type codes (bytes 4-5 of product record)
+// These determine the product name and fare type shown
+const PRODUCT_CODES: { [key: number]: { name: string; fareType: string } } = {
+  // Count-based products
+  0x0134: { name: "trips", fareType: "REDUCED FARE" }, // 308 - Student/reduced trips
+  0x013c: { name: "trips", fareType: "REDUCED FARE" }, // 316 - Student/reduced trips (variant)
+  0x0140: { name: "trips", fareType: "" }, // 320 - Standard trips
+  0x0148: { name: "trips", fareType: "" }, // 328 - Standard trips
+
+  // Monthly/period passes
+  0x025a: { name: "MONTHLY", fareType: "AIRPORT" }, // 602 - Airport monthly
+  0x0258: { name: "MONTHLY", fareType: "" }, // 600 - Standard monthly
+  0x0260: { name: "MONTHLY", fareType: "" }, // 608 - Monthly variant
+  0x0270: { name: "WEEKLY", fareType: "" }, // 624 - Weekly pass
+  0x0280: { name: "DAILY", fareType: "" }, // 640 - Daily pass
+};
+
+// Get product info from product code
+function getProductInfo(
+  productCode: number,
+  productType: number,
+  tripCount: number,
+): { name: string; fareType: string } {
+  const known = PRODUCT_CODES[productCode];
+  if (known) {
+    // For count-based products, prepend the trip count
+    if (productType === 0x32 && tripCount > 0) {
+      return {
+        name: `${tripCount} ${known.name}`,
+        fareType: known.fareType,
+      };
+    }
+    return known;
+  }
+
+  // Fallback based on product type
+  if (productType === 0x31) {
+    return { name: "MONTHLY", fareType: "" };
+  } else if (productType === 0x32) {
+    return { name: `${tripCount} trips`, fareType: "" };
+  }
+  return { name: "Unknown", fareType: "" };
+}
+
 // ATH.ENA Ticket data parser
 function parseAthenaTicketData(
   data: number[],
@@ -180,16 +233,20 @@ function parseAthenaTicketData(
 
   const uid = tagId || "";
   let cardId = uid;
+  let cardKind = "Unknown"; // Will be set to "Plastic personalised" or "Plastic anonymous"
   let tripsRemaining: number | "unlimited" | "encrypted" = isEncrypted
     ? "encrypted"
     : 0;
   let userCategory = "Unknown";
-  let activeProduct: ProductInfo | null = null;
-  let expiredProduct: ProductInfo | null = null;
+  const activeProducts: ProductInfo[] = [];
+  const expiredProducts: ProductInfo[] = [];
+  const unusedProducts: ProductInfo[] = [];
   let isActive = false;
   let remainingTimeSeconds = 0;
   let expiryDate: string | null = null;
   let loadDate: string | null = null;
+  let cashBalance = 0;
+  let lastValidationTimestamp: number | null = null;
 
   if (fileData && !isEncrypted) {
     // === PARSE FILE 2: Card info and user category ===
@@ -227,6 +284,10 @@ function parseAthenaTicketData(
     if (file4 && file4.length >= 10) {
       const typeCode = String.fromCharCode(file4[4], file4[5], file4[6]);
       console.log(`Card type code (File 4): ${typeCode}`);
+
+      // Set card kind - "Plastic personalised" for physical plastic cards
+      // The PKP/ZLZ distinction affects user category, not the card kind display
+      cardKind = "Plastic personalised";
 
       // Check for personalized card indicators
       if (typeCode === "PKP" || file4[3] === 0x37) {
@@ -267,214 +328,304 @@ function parseAthenaTicketData(
       console.log(
         `Remaining trips from File 12: ${tripsRemaining} (raw bytes: ${file12[0]}, ${file12[1]}, ${file12[2]}, ${file12[3]})`,
       );
-    } else {
-      console.log(
-        `File 12 not available or too short, length: ${file12?.length || 0}`,
-      );
     }
 
-    // === PARSE FILE 16: Products ===
-    // Each product is 32 bytes. File 16 contains active products.
-    const file16 = fileData[16];
-    if (file16 && file16.length >= 32) {
-      console.log(
-        `File 16 (products): ${file16
-          .slice(0, 32)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join(" ")}`,
-      );
-
-      // Product type byte helps determine if it's period-based or count-based
-      // 0x31 (49) = Monthly pass, 0x32 (50) = Count-based trips
-      const prodType = file16[1]; // Product type indicator
-      const prod1Trips = file16[16]; // Trip count at byte 16
-
-      // If trips is 0 but product exists, it's likely a period-based pass (monthly, etc.)
-      const isPeriodPass = prod1Trips === 0 && file16[0] !== 0xff;
-
-      if (isPeriodPass || prodType === 0x31) {
-        // Period-based pass (monthly)
-        activeProduct = {
-          name: "Monthly",
-          trips: 0,
-        };
-        // For period passes, trips are unlimited
-        tripsRemaining = "unlimited";
-        console.log(`Active period pass detected, type: ${prodType}`);
-      } else if (prod1Trips > 0) {
-        // Count-based product
-        activeProduct = {
-          name: `${prod1Trips} trips`,
-          trips: prod1Trips,
-        };
-        console.log(`Active product: ${prod1Trips} trips`);
-      }
-
-      // Second product (bytes 32-63)
-      if (file16.length >= 64) {
-        const prod2Type = file16[33];
-        const prod2Trips = file16[32 + 16]; // Trip count at byte 48
-        const isPeriodPass2 = prod2Trips === 0 && file16[32] !== 0xff;
-
-        if (isPeriodPass2 || prod2Type === 0x31) {
-          expiredProduct = {
-            name: "Monthly",
-            trips: 0,
-          };
-          console.log(`Second period pass detected, type: ${prod2Type}`);
-        } else if (prod2Trips > 0) {
-          expiredProduct = {
-            name: `${prod2Trips} trips`,
-            trips: prod2Trips,
-          };
-          console.log(`Expired product: ${prod2Trips} trips`);
-        }
-      }
-
-      // Fallback: if File 12 didn't give us trips but we have an active count-based product
-      if (
-        tripsRemaining === 0 &&
-        activeProduct &&
-        activeProduct.trips &&
-        activeProduct.trips > 0
-      ) {
-        console.log(
-          `Using active product trips as fallback: ${activeProduct.trips}`,
-        );
-        tripsRemaining = activeProduct.trips;
-      }
+    // === PARSE FILE 5: Cash balance (value file) ===
+    const file5 = fileData[5];
+    if (file5 && file5.length >= 4) {
+      const balanceRaw =
+        (file5[0] & 0xff) |
+        ((file5[1] & 0xff) << 8) |
+        ((file5[2] & 0xff) << 16) |
+        ((file5[3] & 0xff) << 24);
+      cashBalance = (balanceRaw >>> 0) / 100; // Convert cents to euros
+      console.log(`Cash balance: ${cashBalance}€`);
     }
 
-    // === PARSE FILE 6: Trip history (cyclic records) ===
-    // This contains trip validation records with timestamps
+    // === PARSE FILE 6: Trip history (cyclic records) for last validation ===
     const file6 = fileData[6];
-    if (file6 && file6.length >= 10) {
+    if (file6 && file6.length >= 28) {
       console.log(
         `File 6 (trip history): ${file6.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
       );
-    }
 
-    // === PARSE PRODUCT TIMESTAMPS from File 16 ===
-    // File 16 structure per product (32 bytes each):
-    // Bytes 0: Status byte
-    // Bytes 1: Product type (0x31=Monthly, 0x32=Count-based trips, etc.)
-    // Bytes 4-7: Load/validation timestamp
-    // Bytes 8-11: Expiry info (format varies by product type)
-    if (file16 && file16.length >= 12) {
-      const athenaEpoch = 852076800; // 1997-01-01 00:00:00 UTC
-      const now = Math.floor(Date.now() / 1000);
-      const prodType = file16[1];
-      const isPeriodPass = prodType === 0x31; // Monthly pass
+      // File 6 record structure (each record ~52 bytes based on file settings)
+      // Scan through all possible positions to find Unix timestamps
+      console.log(`\n=== SCANNING FILE 6 FOR TIMESTAMPS ===`);
 
-      // Parse load timestamp (bytes 4-7) - little-endian
-      const loadBytes = file16.slice(4, 8);
-      const loadRaw =
-        (loadBytes[0] & 0xff) |
-        ((loadBytes[1] & 0xff) << 8) |
-        ((loadBytes[2] & 0xff) << 16) |
-        ((loadBytes[3] & 0xff) << 24);
-      const loadTimestamp = loadRaw >>> 0; // unsigned
+      for (let pos = 0; pos <= file6.length - 4; pos++) {
+        const bytes = file6.slice(pos, pos + 4);
+        const valLE =
+          (bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)) >>>
+          0;
 
-      console.log(`Product load raw: ${loadTimestamp}`);
-
-      // Check if load timestamp is a valid Unix timestamp (2015-2040)
-      if (loadTimestamp > 1420070400 && loadTimestamp < 2208988800) {
-        loadDate = formatTimestamp(loadTimestamp);
-        console.log(`Load date (Unix): ${loadDate}`);
-      } else if (loadTimestamp > 0) {
-        // Try with ATH.ENA epoch
-        const loadUnix = athenaEpoch + loadTimestamp;
-        if (loadUnix > 1420070400 && loadUnix < 2208988800) {
-          loadDate = formatTimestamp(loadUnix);
-          console.log(`Load date (1997 epoch): ${loadDate}`);
+        // Check if it's a valid Unix timestamp in reasonable range (2024-01-01 to 2027-01-01)
+        if (valLE > 1704067200 && valLE < 1798761600) {
+          const dateStr = new Date(valLE * 1000).toISOString();
+          console.log(
+            `Found recent timestamp at pos ${pos}: ${valLE} = ${dateStr}`,
+          );
+          if (!lastValidationTimestamp || valLE > lastValidationTimestamp) {
+            lastValidationTimestamp = valLE;
+          }
         }
       }
 
-      // Parse expiry based on product type
-      if (isPeriodPass) {
-        // For monthly passes, expiry is end of calendar month (23:59:59)
-        // Calculate from load date or current date
-        const refDate =
-          loadTimestamp > 1420070400
-            ? new Date(loadTimestamp * 1000)
-            : new Date();
-
-        // Get end of current month at 23:59:59
-        const endOfMonth = new Date(
-          refDate.getFullYear(),
-          refDate.getMonth() + 1, // Next month
-          0, // Day 0 = last day of previous month
-          23,
-          59,
-          59,
+      if (lastValidationTimestamp) {
+        console.log(
+          `Last validation: ${new Date(lastValidationTimestamp * 1000).toISOString()}`,
         );
-        const endOfMonthUnix = Math.floor(endOfMonth.getTime() / 1000);
-
-        expiryDate = formatTimestamp(endOfMonthUnix);
-        if (endOfMonthUnix > now) {
-          isActive = true;
-          remainingTimeSeconds = endOfMonthUnix - now;
-          console.log(
-            `Monthly pass ACTIVE, expires end of month: ${expiryDate}, remaining: ${remainingTimeSeconds}s`,
-          );
-        } else {
-          console.log(`Monthly pass EXPIRED: ${expiryDate}`);
-        }
       } else {
-        // For count-based trips, parse expiry from bytes 8-11
-        // This represents the trip validation expiry (90 minutes from tap)
-        const expiryBytes = file16.slice(8, 12);
-        const expiryRaw =
-          (expiryBytes[0] & 0xff) |
-          ((expiryBytes[1] & 0xff) << 8) |
-          ((expiryBytes[2] & 0xff) << 16) |
-          ((expiryBytes[3] & 0xff) << 24);
-        const expiryTimestamp = expiryRaw >>> 0;
+        console.log(`No recent timestamps found in File 6`);
+      }
+      console.log(`=== END FILE 6 SCAN ===\n`);
+    }
 
-        console.log(`Product expiry raw: ${expiryTimestamp}`);
+    // === PARSE FILE 16: Products (32 bytes each) ===
+    // Product record structure:
+    // Byte 0: Status (0x00 = exists)
+    // Byte 1: Product type (0x31=Monthly, 0x32=Count-based)
+    // Bytes 2-3: Some identifier (0x64 0x01 = 0x0164)
+    // Bytes 4-5: Product code (determines fare type)
+    // Bytes 6-9: Timestamp or other data
+    // Bytes 10+: Additional product data
+    // Byte 16: For count-based, the trip count at time of load
+    const file16 = fileData[16];
+    if (file16 && file16.length >= 32) {
+      console.log(`\n=== PARSING PRODUCTS ===`);
 
-        // Check if expiry looks like a valid Unix timestamp
-        if (expiryTimestamp > 1420070400 && expiryTimestamp < 2208988800) {
-          expiryDate = formatTimestamp(expiryTimestamp);
-          if (expiryTimestamp > now) {
-            isActive = true;
-            remainingTimeSeconds = expiryTimestamp - now;
+      const now = Math.floor(Date.now() / 1000);
+
+      // Parse each product slot (32 bytes each)
+      const numProducts = Math.min(Math.floor(file16.length / 32), 4);
+
+      for (let i = 0; i < numProducts; i++) {
+        const offset = i * 32;
+        const productBytes = file16.slice(offset, offset + 32);
+
+        // Skip empty product slots (all zeros or 0xFF status)
+        if (productBytes[0] === 0xff || productBytes.every((b) => b === 0)) {
+          continue;
+        }
+
+        console.log(
+          `Product ${i + 1}: ${productBytes.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
+        );
+
+        const productType = productBytes[1];
+        const productCode = (productBytes[4] | (productBytes[5] << 8)) >>> 0;
+        const tripCount = productBytes[16];
+
+        console.log(
+          `  Type: 0x${productType.toString(16)}, Code: 0x${productCode.toString(16)} (${productCode}), Trips: ${tripCount}`,
+        );
+
+        // Get product name and fare type from product code
+        const prodInfo = getProductInfo(productCode, productType, tripCount);
+
+        // Determine if product is Monthly (0x31) or Count-based (0x32)
+        const isMonthlyPass = productType === 0x31;
+
+        // Parse timestamps from bytes 6-9 (load/validation timestamp)
+        // For count-based: bytes 4-7 seem to be the load timestamp (Unix)
+        // For monthly: different encoding
+        let productLoadDate: string | null = null;
+        let productExpiryDate: string | null = null;
+        let productIsActive = false;
+
+        if (isMonthlyPass) {
+          // Monthly pass - bytes 6-9 might be encoded differently
+          // Based on analysis, monthly passes use a different timestamp format
+          // The expiry is typically based on the validity period (e.g., 10 days for airport pass)
+          const bytes6to9 = productBytes.slice(6, 10);
+          const val6_9_LE =
+            (bytes6to9[0] |
+              (bytes6to9[1] << 8) |
+              (bytes6to9[2] << 16) |
+              (bytes6to9[3] << 24)) >>>
+            0;
+
+          console.log(
+            `  Monthly bytes 6-9: ${bytes6to9.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${val6_9_LE}`,
+          );
+
+          // For monthly passes, the timestamp in File 16 may use different encoding
+          // Try to use last validation timestamp from File 6 as reference
+          let refTimestamp: number | null = null;
+
+          // First try bytes 6-9 as Unix timestamp
+          if (val6_9_LE > 1704067200 && val6_9_LE < 1798761600) {
+            refTimestamp = val6_9_LE;
             console.log(
-              `Trip validation ACTIVE (Unix), expires: ${expiryDate}, remaining: ${remainingTimeSeconds}s`,
+              `  Using File 16 timestamp: ${new Date(refTimestamp * 1000).toISOString()}`,
             );
-          } else {
-            console.log(`Trip validation EXPIRED (Unix): ${expiryDate}`);
           }
-        } else if (expiryTimestamp > 0) {
-          // Try with ATH.ENA epoch
-          const expiryUnix = athenaEpoch + expiryTimestamp;
-          if (expiryUnix > 1420070400 && expiryUnix < 2208988800) {
-            expiryDate = formatTimestamp(expiryUnix);
-            if (expiryUnix > now) {
-              isActive = true;
-              remainingTimeSeconds = expiryUnix - now;
-              console.log(
-                `Trip validation ACTIVE (1997 epoch), expires: ${expiryDate}, remaining: ${remainingTimeSeconds}s`,
-              );
+          // Fall back to last validation from File 6
+          else if (lastValidationTimestamp) {
+            refTimestamp = lastValidationTimestamp;
+            console.log(
+              `  Using File 6 validation timestamp: ${new Date(refTimestamp * 1000).toISOString()}`,
+            );
+          }
+
+          if (refTimestamp) {
+            productLoadDate = formatTimestamp(refTimestamp);
+
+            // For monthly/period passes, calculate expiry based on product type
+            // MONTHLY(AIRPORT) appears to be 10 days validity from first use
+            if (productCode === 0x025a) {
+              // Airport monthly - 10 days validity
+              const expiryUnix = refTimestamp + 10 * 24 * 60 * 60;
+              // Round to end of day (23:59:59)
+              const expiryDate_obj = new Date(expiryUnix * 1000);
+              expiryDate_obj.setHours(23, 59, 59, 0);
+              const finalExpiry = Math.floor(expiryDate_obj.getTime() / 1000);
+
+              productExpiryDate = formatTimestamp(finalExpiry);
+              productIsActive = finalExpiry > now;
+
+              if (productIsActive && i === 0) {
+                expiryDate = productExpiryDate;
+                remainingTimeSeconds = finalExpiry - now;
+                isActive = true;
+                loadDate = productLoadDate;
+              }
             } else {
-              console.log(
-                `Trip validation EXPIRED (1997 epoch): ${expiryDate}`,
+              // Standard monthly - end of calendar month
+              const loadDateObj = new Date(refTimestamp * 1000);
+              const endOfMonth = new Date(
+                loadDateObj.getFullYear(),
+                loadDateObj.getMonth() + 1,
+                0,
+                23,
+                59,
+                59,
               );
+              const finalExpiry = Math.floor(endOfMonth.getTime() / 1000);
+
+              productExpiryDate = formatTimestamp(finalExpiry);
+              productIsActive = finalExpiry > now;
+
+              if (productIsActive && i === 0) {
+                expiryDate = productExpiryDate;
+                remainingTimeSeconds = finalExpiry - now;
+                isActive = true;
+                loadDate = productLoadDate;
+              }
+            }
+          }
+
+          // Set trips as unlimited for monthly passes
+          if (i === 0) {
+            tripsRemaining = "unlimited";
+          }
+        } else if (productType === 0x32) {
+          // Count-based product
+          // Bytes 4-7 contain load timestamp (Unix, little-endian)
+          const bytes4to7 = productBytes.slice(4, 8);
+          const loadTimestamp =
+            (bytes4to7[0] |
+              (bytes4to7[1] << 8) |
+              (bytes4to7[2] << 16) |
+              (bytes4to7[3] << 24)) >>>
+            0;
+
+          console.log(
+            `  Count-based bytes 4-7: ${bytes4to7.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${loadTimestamp}`,
+          );
+
+          if (loadTimestamp > 1577836800 && loadTimestamp < 1893456000) {
+            productLoadDate = formatTimestamp(loadTimestamp);
+            console.log(`  Load date: ${productLoadDate}`);
+
+            if (i === 0) {
+              loadDate = productLoadDate;
+            }
+          }
+
+          // For count-based, expiry is last validation + 90 minutes
+          if (lastValidationTimestamp && i === 0) {
+            const tripEndTime = lastValidationTimestamp + 90 * 60;
+            productExpiryDate = formatTimestamp(tripEndTime);
+            productIsActive = tripEndTime > now;
+
+            expiryDate = productExpiryDate;
+            if (productIsActive) {
+              isActive = true;
+              remainingTimeSeconds = tripEndTime - now;
             }
           }
         }
+
+        // Create product info object
+        const product: ProductInfo = {
+          name: prodInfo.name,
+          fareType: prodInfo.fareType,
+          status: "active", // Will be determined below
+          trips: isMonthlyPass ? undefined : tripCount,
+          productCode: productCode,
+        };
+
+        // Determine product status
+        // First product is typically active, subsequent ones can be expired or unused
+        if (i === 0) {
+          product.status = "active";
+          activeProducts.push(product);
+        } else {
+          // Check if this product has been used (has some validation data or different state)
+          // Products with trip count > 0 that aren't active are typically expired
+          if (tripCount > 0 || isMonthlyPass) {
+            // For second monthly pass, check if it's been activated
+            if (isMonthlyPass) {
+              const bytes6to9 = productBytes.slice(6, 10);
+              const val6_9_LE =
+                (bytes6to9[0] |
+                  (bytes6to9[1] << 8) |
+                  (bytes6to9[2] << 16) |
+                  (bytes6to9[3] << 24)) >>>
+                0;
+
+              // If the timestamp is in a reasonable range, it's been used -> expired or still active
+              // If not, it's unused
+              if (val6_9_LE > 1577836800 && val6_9_LE < 1893456000) {
+                product.status = "expired";
+                expiredProducts.push(product);
+              } else {
+                product.status = "unused";
+                unusedProducts.push(product);
+              }
+            } else {
+              product.status = "expired";
+              expiredProducts.push(product);
+            }
+          }
+        }
+
+        console.log(
+          `  -> ${product.status}: ${product.name} ${product.fareType ? `(${product.fareType})` : ""}`,
+        );
       }
+
+      console.log(`=== END PRODUCTS ===\n`);
     }
   }
+
+  // Legacy: Set activeProduct and expiredProduct for backward compatibility
+  const activeProduct = activeProducts.length > 0 ? activeProducts[0] : null;
+  const expiredProduct = expiredProducts.length > 0 ? expiredProducts[0] : null;
 
   const result: TicketInfo = {
     cardId,
     uid,
     cardType: versionInfo.cardType,
+    cardKind,
     manufacturer: versionInfo.manufacturer,
     capacity: versionInfo.capacity,
     productionDate: versionInfo.productionDate,
     tripsRemaining,
+    activeProducts,
+    expiredProducts,
+    unusedProducts,
     activeProduct,
     expiredProduct,
     userCategory,
@@ -482,6 +633,7 @@ function parseAthenaTicketData(
     remainingTimeSeconds,
     expiryDate,
     loadDate,
+    cashBalance,
     isEncrypted: isEncrypted || false,
     applicationId: applicationId || "",
   };
@@ -1207,12 +1359,16 @@ export default function TicketScreen() {
                 cardId: tag.id,
                 uid: tag.id,
                 cardType: desfireInfo?.cardType || "Unknown",
+                cardKind: "Unknown",
                 manufacturer: desfireInfo?.manufacturer || "Unknown",
                 capacity: desfireInfo?.capacity || "Unknown",
                 productionDate: desfireInfo?.productionDate || "Unknown",
                 isEncrypted: isEncrypted,
                 applicationId: applicationId,
                 tripsRemaining: 0,
+                activeProducts: [],
+                expiredProducts: [],
+                unusedProducts: [],
                 activeProduct: null,
                 expiredProduct: null,
                 userCategory: "Unknown",
@@ -1220,6 +1376,7 @@ export default function TicketScreen() {
                 remainingTimeSeconds: 0,
                 expiryDate: null,
                 loadDate: null,
+                cashBalance: 0,
               });
               setError(null);
             } else {
@@ -1422,6 +1579,26 @@ export default function TicketScreen() {
                 </Text>
               </View>
             </View>
+            {/* Card Kind */}
+            {ticketInfo.cardKind && ticketInfo.cardKind !== "Unknown" && (
+              <View style={[styles.infoRow, { marginTop: 12 }]}>
+                <Ionicons
+                  name="pricetag-outline"
+                  size={24}
+                  color={colors.accent}
+                />
+                <View style={styles.infoContent}>
+                  <Text
+                    style={[styles.infoLabel, { color: colors.textSecondary }]}
+                  >
+                    Kind
+                  </Text>
+                  <Text style={[styles.infoValue, { color: colors.text }]}>
+                    {ticketInfo.cardKind}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* User Category */}
@@ -1508,7 +1685,11 @@ export default function TicketScreen() {
           )}
 
           {/* Products Section */}
-          {(ticketInfo.activeProduct || ticketInfo.expiredProduct) && (
+          {(ticketInfo.activeProducts?.length > 0 ||
+            ticketInfo.expiredProducts?.length > 0 ||
+            ticketInfo.unusedProducts?.length > 0 ||
+            ticketInfo.activeProduct ||
+            ticketInfo.expiredProduct) && (
             <Text
               style={[
                 styles.sectionTitle,
@@ -1519,8 +1700,90 @@ export default function TicketScreen() {
             </Text>
           )}
 
-          {/* Active Product */}
-          {ticketInfo.activeProduct && (
+          {/* Active Products */}
+          {ticketInfo.activeProducts?.map((product, index) => (
+            <View
+              key={`active-${index}`}
+              style={[
+                styles.productCard,
+                { backgroundColor: "#22C55E20", borderColor: "#22C55E" },
+              ]}
+            >
+              <View style={styles.productHeader}>
+                <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
+                <Text style={[styles.productTitle, { color: "#22C55E" }]}>
+                  {t.activeProduct}
+                </Text>
+              </View>
+              <Text style={[styles.productName, { color: colors.text }]}>
+                {product.name}
+                {product.fareType ? ` (${product.fareType})` : ""}
+              </Text>
+            </View>
+          ))}
+
+          {/* Unused Products */}
+          {ticketInfo.unusedProducts?.map((product, index) => (
+            <View
+              key={`unused-${index}`}
+              style={[
+                styles.productCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.productHeader}>
+                <Ionicons
+                  name="pause-circle"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.productTitle, { color: colors.textSecondary }]}
+                >
+                  Unused
+                </Text>
+              </View>
+              <Text
+                style={[styles.productName, { color: colors.textSecondary }]}
+              >
+                {product.name}
+                {product.fareType ? ` (${product.fareType})` : ""}
+              </Text>
+            </View>
+          ))}
+
+          {/* Expired Products */}
+          {ticketInfo.expiredProducts?.map((product, index) => (
+            <View
+              key={`expired-${index}`}
+              style={[
+                styles.productCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.productHeader}>
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.productTitle, { color: colors.textSecondary }]}
+                >
+                  {t.expiredProduct}
+                </Text>
+              </View>
+              <Text
+                style={[styles.productName, { color: colors.textSecondary }]}
+              >
+                {product.name}
+                {product.fareType ? ` (${product.fareType})` : ""}
+              </Text>
+            </View>
+          ))}
+
+          {/* Legacy Active Product (fallback) */}
+          {!ticketInfo.activeProducts?.length && ticketInfo.activeProduct && (
             <View
               style={[
                 styles.productCard,
@@ -1539,8 +1802,8 @@ export default function TicketScreen() {
             </View>
           )}
 
-          {/* Expired Product */}
-          {ticketInfo.expiredProduct && (
+          {/* Legacy Expired Product (fallback) */}
+          {!ticketInfo.expiredProducts?.length && ticketInfo.expiredProduct && (
             <View
               style={[
                 styles.productCard,
@@ -1564,6 +1827,23 @@ export default function TicketScreen() {
               >
                 {ticketInfo.expiredProduct.name}
               </Text>
+            </View>
+          )}
+
+          {/* Cash Balance */}
+          {ticketInfo.cashBalance !== undefined && (
+            <View style={[styles.infoRow, { marginTop: 12 }]}>
+              <Ionicons name="cash-outline" size={20} color={colors.accent} />
+              <View style={styles.infoContent}>
+                <Text
+                  style={[styles.infoLabel, { color: colors.textSecondary }]}
+                >
+                  Cash
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>
+                  {ticketInfo.cashBalance.toFixed(1)}€
+                </Text>
+              </View>
             </View>
           )}
         </View>

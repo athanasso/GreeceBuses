@@ -3,6 +3,8 @@ import { Skeleton } from "moti/skeleton";
 import React from "react";
 import { DimensionValue, StyleSheet, View } from "react-native";
 
+import { Colors } from "@/constants/theme";
+
 interface SkeletonLoaderProps {
   width?: DimensionValue;
   height?: number;

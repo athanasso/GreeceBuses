@@ -167,7 +167,7 @@ const PRODUCT_CODES: { [key: number]: { name: string; fareType: string } } = {
   0x0140: { name: "trips", fareType: "" }, // 320 - Standard trips
   0x0148: { name: "trips", fareType: "" }, // 328 - Standard trips
 
-  // Monthly/period passes
+  // Monthly/period passes (validity from byte 14 of product slot)
   0x025a: { name: "MONTHLY", fareType: "AIRPORT" }, // 602 - Airport monthly
   0x0258: { name: "MONTHLY", fareType: "" }, // 600 - Standard monthly
   0x0260: { name: "MONTHLY", fareType: "" }, // 608 - Monthly variant
@@ -463,65 +463,46 @@ function parseAthenaTicketData(
         let calculatedExpiry: number | null = null;
 
         if (isMonthlyPass) {
-          // Monthly/Period passes - parse load timestamp from bytes 6-9
-          const bytes6to9 = productBytes.slice(6, 10);
-          const loadTimestampLE =
-            (bytes6to9[0] |
-              (bytes6to9[1] << 8) |
-              (bytes6to9[2] << 16) |
-              (bytes6to9[3] << 24)) >>>
-            0;
-
-          console.log(
-            `  Monthly pass bytes 6-9: ${bytes6to9.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${loadTimestampLE}`,
-          );
-
-          // Determine reference timestamp (load date)
-          let refTimestamp: number | null = null;
-          if (loadTimestampLE >= TIMESTAMP_MIN && loadTimestampLE < TIMESTAMP_MAX) {
-            refTimestamp = loadTimestampLE;
-            console.log(`  Load timestamp (File 16): ${new Date(refTimestamp * 1000).toISOString()}`);
-          } else if (lastValidationTimestamp) {
-            // Fall back to last validation from File 06
-            refTimestamp = lastValidationTimestamp;
-            console.log(`  Using File 06 validation as reference: ${new Date(refTimestamp * 1000).toISOString()}`);
-          }
-
-          if (refTimestamp) {
-            productLoadDate = formatTimestamp(refTimestamp);
-
-            // Calculate expiry based on product code
-            if (productCode === 0x025a) {
-              // Airport Monthly: Load Date + 10 days (per spec)
-              const expiryUnix = refTimestamp + VALIDITY_AIRPORT_DAYS * 24 * 60 * 60;
-              const expiryDateObj = new Date(expiryUnix * 1000);
-              expiryDateObj.setHours(23, 59, 59, 0); // End of day
-              calculatedExpiry = Math.floor(expiryDateObj.getTime() / 1000);
-              console.log(`  Airport Monthly expiry (Load + ${VALIDITY_AIRPORT_DAYS} days): ${expiryDateObj.toISOString()}`);
-            } else {
-              // Standard Monthly: End of the calendar month of the Load Date (per spec)
-              const loadDateObj = new Date(refTimestamp * 1000);
-              const endOfMonth = new Date(
-                loadDateObj.getFullYear(),
-                loadDateObj.getMonth() + 1,
-                0, // Day 0 of next month = last day of current month
-                23,
-                59,
-                59,
-              );
-              calculatedExpiry = Math.floor(endOfMonth.getTime() / 1000);
-              console.log(`  Monthly expiry (end of month): ${endOfMonth.toISOString()}`);
-            }
-
-            if (calculatedExpiry) {
-              productExpiryDate = formatTimestamp(calculatedExpiry);
-              productValidUntil = new Date(calculatedExpiry * 1000);
-            }
+          // Monthly/Period passes use special ATH.ENA date encoding:
+          // - Bytes 6-7 (LE): Days since January 1, 2016 (epoch, 1-indexed)
+          // - Bytes 8-9: Time of day in seconds (optional)
+          // - Byte 14: Validity period in days (e.g., 30 for monthly)
+          const ATHENA_EPOCH = new Date(Date.UTC(2016, 0, 1)).getTime() / 1000; // Jan 1, 2016 00:00 UTC
+          
+          // Parse start date as days since epoch (bytes 6-7, little-endian 16-bit)
+          const startDays = (productBytes[6] | (productBytes[7] << 8)) >>> 0;
+          // Parse validity period from byte 14
+          const validityDays = productBytes[14] || 30; // Default to 30 days if not set
+          
+          console.log(`  Monthly pass encoding:`);
+          console.log(`    Start days (bytes 6-7): ${startDays} (1-indexed from Jan 1, 2016)`);
+          console.log(`    Validity period (byte 14): ${validityDays} days`);
+          
+          // Calculate start date (add startDays to epoch)
+          const startTimestamp = ATHENA_EPOCH + (startDays * 24 * 60 * 60);
+          const startDate = new Date(startTimestamp * 1000);
+          console.log(`    Start date: ${startDate.toISOString()}`);
+          
+          productLoadDate = formatTimestamp(startTimestamp);
+          
+          // Calculate expiry: start date + validity days + 1 (dates are inclusive)
+          const expiryTimestamp = startTimestamp + ((validityDays + 1) * 24 * 60 * 60);
+          const expiryDateObj = new Date(expiryTimestamp * 1000);
+          // Set to end of day for display
+          expiryDateObj.setHours(23, 59, 59, 0);
+          calculatedExpiry = Math.floor(expiryDateObj.getTime() / 1000);
+          
+          console.log(`    Expiry date: ${expiryDateObj.toISOString()}`);
+          
+          if (calculatedExpiry) {
+            productExpiryDate = formatTimestamp(calculatedExpiry);
+            productValidUntil = new Date(calculatedExpiry * 1000);
           }
 
           // Monthly passes have unlimited trips
           if (slotIndex === 0) {
             tripsRemaining = "unlimited";
+            loadDate = productLoadDate;
           }
         } else if (isCountBased) {
           // Count-based product
@@ -1595,6 +1576,43 @@ export default function TicketScreen() {
             </View>
           )}
 
+          {/* Validity Period Card - Shows valid until or expired at */}
+          {ticketInfo.expiryDate && (
+            <View
+              style={[
+                styles.validityCard,
+                {
+                  backgroundColor: ticketInfo.isActive ? "#22C55E15" : "#EF444415",
+                  borderColor: ticketInfo.isActive ? "#22C55E40" : "#EF444440",
+                },
+              ]}
+            >
+              <View style={styles.validityHeader}>
+                <Ionicons
+                  name={ticketInfo.isActive ? "checkmark-circle" : "close-circle"}
+                  size={28}
+                  color={ticketInfo.isActive ? "#22C55E" : "#EF4444"}
+                />
+                <Text
+                  style={[
+                    styles.validityTitle,
+                    { color: ticketInfo.isActive ? "#22C55E" : "#EF4444" },
+                  ]}
+                >
+                  {ticketInfo.isActive ? (t.validUntil || "Valid until") : (t.expiredAt || "Expired at")}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.validityDate,
+                  { color: ticketInfo.isActive ? "#22C55E" : "#EF4444" },
+                ]}
+              >
+                {ticketInfo.expiryDate}
+              </Text>
+            </View>
+          )}
+
           {/* Trips Remaining - Big display */}
           <View
             style={[
@@ -1678,39 +1696,6 @@ export default function TicketScreen() {
               </View>
             </View>
           </View>
-
-          {/* Expiry Date */}
-          {ticketInfo.expiryDate && (
-            <View
-              style={[
-                styles.infoCard,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
-            >
-              <View style={styles.infoRow}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={24}
-                  color={ticketInfo.isActive ? "#22C55E" : "#EF4444"}
-                />
-                <View style={styles.infoContent}>
-                  <Text
-                    style={[styles.infoLabel, { color: colors.textSecondary }]}
-                  >
-                    {t.expiryDate}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.infoValue,
-                      { color: ticketInfo.isActive ? "#22C55E" : "#EF4444" },
-                    ]}
-                  >
-                    {ticketInfo.expiryDate}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
 
           {/* Load Date */}
           {ticketInfo.loadDate && (
@@ -2201,5 +2186,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: "center",
+  },
+  // Validity card styles
+  validityCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  validityHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  validityTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  validityDate: {
+    fontSize: 22,
+    fontWeight: "700",
   },
 });

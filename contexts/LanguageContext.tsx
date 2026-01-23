@@ -97,6 +97,8 @@ interface Translations {
   ticketData: string;
   readingCard: string;
   keepCardClose: string;
+  validUntil: string;
+  expiredAt: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -198,6 +200,8 @@ const translations: Record<Language, Translations> = {
     ticketData: "Ticket Data",
     readingCard: "Reading card...",
     keepCardClose: "Keep card close to the device",
+    validUntil: "Valid until",
+    expiredAt: "Expired at",
   },
   el: {
     // Navigation
@@ -298,6 +302,8 @@ const translations: Record<Language, Translations> = {
     ticketData: "Δεδομένα Εισιτηρίου",
     readingCard: "Ανάγνωση κάρτας...",
     keepCardClose: "Κρατήστε την κάρτα κοντά στη συσκευή",
+    validUntil: "Ισχύει έως",
+    expiredAt: "Έληξε στις",
   },
 };
 

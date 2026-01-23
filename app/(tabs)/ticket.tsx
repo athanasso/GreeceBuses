@@ -136,18 +136,26 @@ function parseDESFireVersion(versionData: number[]): {
   return { cardType, manufacturer, capacity, productionDate };
 }
 
-// ATH.ENA User category codes
+// ATH.ENA User category codes (per protocol specification)
+// 0x00, 0x01, 0x30: Adult (Standard)
+// 0x10: Student
+// 0x20: Senior (65+)
+// 0x40: Child
+// 0x50: Disabled
+// 0x60: Military
+// 0x70: Unemployed
+// 0x80: University Student
 const USER_CATEGORIES: { [key: number]: string } = {
   0x00: "Adult",
   0x01: "Adult",
   0x10: "Student",
-  0x20: "Senior",
-  0x30: "Adult", // Personalized adult card
+  0x20: "Senior (65+)",
+  0x30: "Adult",
   0x40: "Child",
   0x50: "Disabled",
   0x60: "Military",
   0x70: "Unemployed",
-  0x80: "University student",
+  0x80: "University Student",
 };
 
 // ATH.ENA Product/Fare type codes (bytes 4-5 of product record)
@@ -253,66 +261,66 @@ function parseAthenaTicketData(
   let lastValidationTimestamp: number | null = null;
 
   if (fileData && !isEncrypted) {
-    // === PARSE FILE 2: Card info and user category ===
+    // === PARSE FILE 02: Card Identity - Base User Category & Card Serial Number ===
+    // Per ATH.ENA Protocol Specification:
+    // - Card Number: Bytes 12-16 are BCD (Binary Coded Decimal) suffix
+    // - Prefix: Always prepend "3001 0100"
+    // - User Category: Byte 9 contains the base category
     const file2 = fileData[2];
-    if (file2 && file2.length >= 20) {
-      // Card ID is at bytes 12-16: 00 02 16 39 54 -> "3001 0100 0216 3954"
-      // The format seems to be: [prefix bytes] [card number in BCD]
-      // Looking at: b0 32 01 83 01 1a 01 01 01 30 01 01 00 02 16 39 54
-      // Bytes 12-16 contain part of card number
-      const cardBytes = file2.slice(12, 17);
-      let cardNum = "3001 0100 "; // Prefix for ATH.ENA cards
-      for (const b of cardBytes) {
-        cardNum += b.toString(16).padStart(2, "0");
-      }
-      // Format as: 3001 0100 0216 3954
-      cardId = cardNum
+    if (file2 && file2.length >= 17) {
+      // Card ID construction: The BCD suffix is 4 bytes starting at index 13
+      // Example: If bytes 13-16 are [02, 16, 39, 54] -> ID: "3001 0100 0216 3954"
+      // Note: slice(13, 17) gives indices 13, 14, 15, 16 = 4 bytes = 8 hex chars
+      const cardSuffix = file2.slice(13, 17);
+      const suffixHex = cardSuffix
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      // Prepend the fixed ATH.ENA card prefix (8 chars) + suffix (8 chars) = 16 chars
+      const fullCardNum = "30010100" + suffixHex;
+      // Format as: 3001 0100 XXXX XXXX (groups of 4)
+      cardId = fullCardNum
         .toUpperCase()
         .replace(/(.{4})/g, "$1 ")
         .trim();
-      console.log(`Parsed Card ID: ${cardId}`);
+      console.log(`Parsed Card ID (BCD format): ${cardId}`);
 
-      // User category from byte 9 of File 2
-      const categoryByte = file2[9];
-      userCategory = USER_CATEGORIES[categoryByte] || "Regular";
+      // Base User Category from Byte 9 of File 02
+      const baseCategoryByte = file2[9];
+      userCategory = USER_CATEGORIES[baseCategoryByte] || "Unknown";
       console.log(
-        `User category byte (File 2): 0x${categoryByte.toString(16)} -> ${userCategory}`,
+        `Base User Category (File 02, Byte 9): 0x${baseCategoryByte.toString(16)} -> ${userCategory}`,
       );
     }
 
-    // === PARSE FILE 4: Card personalization and user type ===
-    // File 4 contains card type info - bytes 4-6 contain a type code
-    // PKP = Personalized card (University student, etc.)
-    // ZLZ = Anonymous/Regular card
+    // === PARSE FILE 04: Personalization - "PKP" vs "ZLZ" flags ===
+    // Per ATH.ENA Protocol Specification:
+    // - Bytes 4-6: Type code string ("PKP" = Personalized, "ZLZ" = Anonymous)
+    // - Override Check: If "PKP" and Byte 9 is non-zero, override base category
     const file4 = fileData[4];
     if (file4 && file4.length >= 10) {
       const typeCode = String.fromCharCode(file4[4], file4[5], file4[6]);
-      console.log(`Card type code (File 4): ${typeCode}`);
+      console.log(`Card personalization code (File 04, Bytes 4-6): "${typeCode}"`);
 
-      // Set card kind - "Plastic personalised" for physical plastic cards
-      // The PKP/ZLZ distinction affects user category, not the card kind display
-      cardKind = "Plastic personalised";
-
-      // Check for personalized card indicators
-      if (typeCode === "PKP" || file4[3] === 0x37) {
-        // Personalized card - check File 4 bytes 9-14 for category data
-        // Personalized cards often have specific user categories
-        const persCategory = file4[9];
-        if (persCategory !== 0) {
-          // Override with personalized category if available
-          const persUserCat = USER_CATEGORIES[persCategory];
-          if (persUserCat) {
-            userCategory = persUserCat;
+      // Set card kind based on personalization
+      if (typeCode === "PKP") {
+        cardKind = "Plastic personalised";
+        // PKP = Personalized card - check for category override
+        const overrideCategory = file4[9];
+        if (overrideCategory !== 0) {
+          const overrideCat = USER_CATEGORIES[overrideCategory];
+          if (overrideCat) {
+            userCategory = overrideCat;
             console.log(
-              `Personalized user category: 0x${persCategory.toString(16)} -> ${userCategory}`,
+              `Personalized category override (File 04, Byte 9): 0x${overrideCategory.toString(16)} -> ${userCategory}`,
             );
           }
         }
-        // If PKP code and no specific category, likely University student
-        if (userCategory === "Adult" && typeCode === "PKP") {
-          userCategory = "University student";
-          console.log(`Detected University student card (PKP type)`);
-        }
+      } else if (typeCode === "ZLZ") {
+        cardKind = "Plastic anonymous";
+        console.log("Anonymous card detected (ZLZ)");
+      } else {
+        // Unknown type, default to personalised display
+        cardKind = "Plastic personalised";
       }
     }
 
@@ -346,16 +354,22 @@ function parseAthenaTicketData(
       console.log(`Cash balance: ${cashBalance}€`);
     }
 
-    // === PARSE FILE 6: Trip history (cyclic records) for last validation ===
+    // === PARSE FILE 06: Event Log (Cyclic Records) - Last Validation Heuristic ===
+    // Per ATH.ENA Protocol Specification:
+    // - Heuristic Scan: Scan 4-byte windows for integers between 1704067200 (Jan 1 2024) and 1798761600 (Jan 1 2027)
+    // - The LARGEST value found is the "Last Validation" timestamp
     const file6 = fileData[6];
-    if (file6 && file6.length >= 28) {
+    // Timestamp range constants per protocol spec
+    const TIMESTAMP_MIN = 1704067200; // Jan 1, 2024 00:00:00 UTC
+    const TIMESTAMP_MAX = 1798761600; // Jan 1, 2027 00:00:00 UTC
+
+    if (file6 && file6.length >= 4) {
       console.log(
-        `File 6 (trip history): ${file6.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
+        `File 06 (Event Log): ${file6.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
       );
 
-      // File 6 record structure (each record ~52 bytes based on file settings)
-      // Scan through all possible positions to find Unix timestamps
-      console.log(`\n=== SCANNING FILE 6 FOR TIMESTAMPS ===`);
+      console.log(`\n=== HEURISTIC SCAN FILE 06 FOR TIMESTAMPS ===`);
+      console.log(`Scanning for Unix timestamps in range [${TIMESTAMP_MIN}, ${TIMESTAMP_MAX}]`);
 
       for (let pos = 0; pos <= file6.length - 4; pos++) {
         const bytes = file6.slice(pos, pos + 4);
@@ -363,12 +377,13 @@ function parseAthenaTicketData(
           (bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)) >>>
           0;
 
-        // Check if it's a valid Unix timestamp in reasonable range (2024-01-01 to 2027-01-01)
-        if (valLE > 1704067200 && valLE < 1798761600) {
+        // Check if value falls within the valid timestamp range (as per protocol spec)
+        if (valLE >= TIMESTAMP_MIN && valLE < TIMESTAMP_MAX) {
           const dateStr = new Date(valLE * 1000).toISOString();
           console.log(
-            `Found recent timestamp at pos ${pos}: ${valLE} = ${dateStr}`,
+            `  Found timestamp at pos ${pos}: ${valLE} = ${dateStr}`,
           );
+          // Per spec: largest value found is the "Last Validation"
           if (!lastValidationTimestamp || valLE > lastValidationTimestamp) {
             lastValidationTimestamp = valLE;
           }
@@ -377,72 +392,80 @@ function parseAthenaTicketData(
 
       if (lastValidationTimestamp) {
         console.log(
-          `Last validation: ${new Date(lastValidationTimestamp * 1000).toISOString()}`,
+          `Last Validation (largest timestamp): ${new Date(lastValidationTimestamp * 1000).toISOString()}`,
         );
       } else {
-        console.log(`No recent timestamps found in File 6`);
+        console.log(`No timestamps found in valid range`);
       }
-      console.log(`=== END FILE 6 SCAN ===\n`);
+      console.log(`=== END HEURISTIC SCAN ===\n`);
     }
 
-    // === PARSE FILE 16: Products (32 bytes each) ===
-    // Product record structure:
-    // Byte 0: Status (0x00 = exists)
-    // Byte 1: Product type (0x31=Monthly, 0x32=Count-based)
-    // Bytes 2-3: Some identifier (0x64 0x01 = 0x0164)
-    // Bytes 4-5: Product code (determines fare type)
-    // Bytes 6-9: Timestamp or other data
-    // Bytes 10+: Additional product data
-    // Byte 16: For count-based, the trip count at time of load
+    // === PARSE FILE 16: Product Slots (Linear Record File) ===
+    // Per ATH.ENA Protocol Specification:
+    // - Slot Structure: Each slot is 32 bytes
+    // - Product Code: Bytes 4-5 (Little Endian)
+    // - Status Logic:
+    //   * Active: Slot 0 is occupied AND (Current Time < Calculated Expiry)
+    //   * Expired: Expiry time has passed
+    //   * Unused: Trip count > 0 but no validation timestamp exists in range
+    // - Validity Duration:
+    //   * Count-based tickets: Last Validation + 90 minutes (5400 seconds)
+    //   * Airport Monthly: Load Date + 10 days
+    //   * Standard Monthly: End of the calendar month of the Load Date
     const file16 = fileData[16];
+    
+    // Validity duration constants (in seconds)
+    const VALIDITY_COUNT_BASED = 5400; // 90 minutes per protocol spec
+    const VALIDITY_AIRPORT_DAYS = 10; // 10 days for airport monthly
+    
     if (file16 && file16.length >= 32) {
-      console.log(`\n=== PARSING PRODUCTS ===`);
+      console.log(`\n=== PARSING FILE 16: PRODUCT SLOTS ===`);
 
       const now = Math.floor(Date.now() / 1000);
 
       // Parse each product slot (32 bytes each)
       const numProducts = Math.min(Math.floor(file16.length / 32), 4);
 
-      for (let i = 0; i < numProducts; i++) {
-        const offset = i * 32;
+      for (let slotIndex = 0; slotIndex < numProducts; slotIndex++) {
+        const offset = slotIndex * 32;
         const productBytes = file16.slice(offset, offset + 32);
 
         // Skip empty product slots (all zeros or 0xFF status)
         if (productBytes[0] === 0xff || productBytes.every((b) => b === 0)) {
+          console.log(`Slot ${slotIndex}: Empty (skipping)`);
           continue;
         }
 
         console.log(
-          `Product ${i + 1}: ${productBytes.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
+          `Slot ${slotIndex}: ${productBytes.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`,
         );
 
         const productType = productBytes[1];
+        // Product Code: Bytes 4-5, Little Endian (per spec)
         const productCode = (productBytes[4] | (productBytes[5] << 8)) >>> 0;
         const tripCount = productBytes[16];
 
         console.log(
-          `  Type: 0x${productType.toString(16)}, Code: 0x${productCode.toString(16)} (${productCode}), Trips: ${tripCount}`,
+          `  Type: 0x${productType.toString(16)}, Code: 0x${productCode.toString(16).padStart(4, "0")} (${productCode}), Trips: ${tripCount}`,
         );
 
-        // Get product name and fare type from product code
+        // Get product name and fare type from product code lookup table
         const prodInfo = getProductInfo(productCode, productType, tripCount);
 
-        // Determine if product is Monthly (0x31) or Count-based (0x32)
+        // Determine product type classification
         const isMonthlyPass = productType === 0x31;
+        const isCountBased = productType === 0x32;
 
-        // Parse timestamps from bytes 6-9 (load/validation timestamp)
-        // For count-based: bytes 4-7 seem to be the load timestamp (Unix)
-        // For monthly: different encoding
+        // Parse timestamps and calculate expiry
         let productLoadDate: string | null = null;
         let productExpiryDate: string | null = null;
-        let productIsActive = false;
+        let productValidUntil: Date | undefined = undefined;
+        let calculatedExpiry: number | null = null;
 
         if (isMonthlyPass) {
-          // Monthly pass - bytes 6-9 might be encoded differently
-          // Based on analysis, monthly passes use a different timestamp format
-          // The expiry is typically based on the validity period (e.g., 10 days for airport pass)
+          // Monthly/Period passes - parse load timestamp from bytes 6-9
           const bytes6to9 = productBytes.slice(6, 10);
-          const val6_9_LE =
+          const loadTimestampLE =
             (bytes6to9[0] |
               (bytes6to9[1] << 8) |
               (bytes6to9[2] << 16) |
@@ -450,114 +473,66 @@ function parseAthenaTicketData(
             0;
 
           console.log(
-            `  Monthly bytes 6-9: ${bytes6to9.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${val6_9_LE}`,
+            `  Monthly pass bytes 6-9: ${bytes6to9.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${loadTimestampLE}`,
           );
 
-          // For monthly passes, the timestamp in File 16 may use different encoding
-          // Try to use last validation timestamp from File 6 as reference
+          // Determine reference timestamp (load date)
           let refTimestamp: number | null = null;
-
-          // First try bytes 6-9 as Unix timestamp
-          if (val6_9_LE > 1704067200 && val6_9_LE < 1798761600) {
-            refTimestamp = val6_9_LE;
-            console.log(
-              `  Using File 16 timestamp: ${new Date(refTimestamp * 1000).toISOString()}`,
-            );
-          }
-          // Fall back to last validation from File 6
-          else if (lastValidationTimestamp) {
+          if (loadTimestampLE >= TIMESTAMP_MIN && loadTimestampLE < TIMESTAMP_MAX) {
+            refTimestamp = loadTimestampLE;
+            console.log(`  Load timestamp (File 16): ${new Date(refTimestamp * 1000).toISOString()}`);
+          } else if (lastValidationTimestamp) {
+            // Fall back to last validation from File 06
             refTimestamp = lastValidationTimestamp;
-            console.log(
-              `  Using File 6 validation timestamp: ${new Date(refTimestamp * 1000).toISOString()}`,
-            );
+            console.log(`  Using File 06 validation as reference: ${new Date(refTimestamp * 1000).toISOString()}`);
           }
 
           if (refTimestamp) {
             productLoadDate = formatTimestamp(refTimestamp);
 
-            // For monthly/period passes, calculate expiry based on product type
-            // MONTHLY(AIRPORT) appears to be 10 days validity from first use
+            // Calculate expiry based on product code
             if (productCode === 0x025a) {
-              // Airport monthly - 10 days validity
-              const expiryUnix = refTimestamp + 10 * 24 * 60 * 60;
-              // Round to end of day (23:59:59)
-              const expiryDate_obj = new Date(expiryUnix * 1000);
-              expiryDate_obj.setHours(23, 59, 59, 0);
-              const finalExpiry = Math.floor(expiryDate_obj.getTime() / 1000);
-
-              productExpiryDate = formatTimestamp(finalExpiry);
-              productIsActive = finalExpiry > now;
-
-              if (productIsActive && i === 0) {
-                expiryDate = productExpiryDate;
-                remainingTimeSeconds = finalExpiry - now;
-                isActive = true;
-                loadDate = productLoadDate;
-              }
+              // Airport Monthly: Load Date + 10 days (per spec)
+              const expiryUnix = refTimestamp + VALIDITY_AIRPORT_DAYS * 24 * 60 * 60;
+              const expiryDateObj = new Date(expiryUnix * 1000);
+              expiryDateObj.setHours(23, 59, 59, 0); // End of day
+              calculatedExpiry = Math.floor(expiryDateObj.getTime() / 1000);
+              console.log(`  Airport Monthly expiry (Load + ${VALIDITY_AIRPORT_DAYS} days): ${expiryDateObj.toISOString()}`);
             } else {
-              // Standard monthly - end of calendar month
+              // Standard Monthly: End of the calendar month of the Load Date (per spec)
               const loadDateObj = new Date(refTimestamp * 1000);
               const endOfMonth = new Date(
                 loadDateObj.getFullYear(),
                 loadDateObj.getMonth() + 1,
-                0,
+                0, // Day 0 of next month = last day of current month
                 23,
                 59,
                 59,
               );
-              const finalExpiry = Math.floor(endOfMonth.getTime() / 1000);
+              calculatedExpiry = Math.floor(endOfMonth.getTime() / 1000);
+              console.log(`  Monthly expiry (end of month): ${endOfMonth.toISOString()}`);
+            }
 
-              productExpiryDate = formatTimestamp(finalExpiry);
-              productIsActive = finalExpiry > now;
-
-              if (productIsActive && i === 0) {
-                expiryDate = productExpiryDate;
-                remainingTimeSeconds = finalExpiry - now;
-                isActive = true;
-                loadDate = productLoadDate;
-              }
+            if (calculatedExpiry) {
+              productExpiryDate = formatTimestamp(calculatedExpiry);
+              productValidUntil = new Date(calculatedExpiry * 1000);
             }
           }
 
-          // Set trips as unlimited for monthly passes
-          if (i === 0) {
+          // Monthly passes have unlimited trips
+          if (slotIndex === 0) {
             tripsRemaining = "unlimited";
           }
-        } else if (productType === 0x32) {
+        } else if (isCountBased) {
           // Count-based product
-          // Bytes 4-7 contain load timestamp (Unix, little-endian)
-          const bytes4to7 = productBytes.slice(4, 8);
-          const loadTimestamp =
-            (bytes4to7[0] |
-              (bytes4to7[1] << 8) |
-              (bytes4to7[2] << 16) |
-              (bytes4to7[3] << 24)) >>>
-            0;
+          // For count-based: Expiry = Last Validation + 90 minutes (5400 seconds) per spec
+          console.log(`  Count-based product`);
 
-          console.log(
-            `  Count-based bytes 4-7: ${bytes4to7.map((b) => b.toString(16).padStart(2, "0")).join(" ")} = ${loadTimestamp}`,
-          );
-
-          if (loadTimestamp > 1577836800 && loadTimestamp < 1893456000) {
-            productLoadDate = formatTimestamp(loadTimestamp);
-            console.log(`  Load date: ${productLoadDate}`);
-
-            if (i === 0) {
-              loadDate = productLoadDate;
-            }
-          }
-
-          // For count-based, expiry is last validation + 90 minutes
-          if (lastValidationTimestamp && i === 0) {
-            const tripEndTime = lastValidationTimestamp + 90 * 60;
-            productExpiryDate = formatTimestamp(tripEndTime);
-            productIsActive = tripEndTime > now;
-
-            expiryDate = productExpiryDate;
-            if (productIsActive) {
-              isActive = true;
-              remainingTimeSeconds = tripEndTime - now;
-            }
+          if (lastValidationTimestamp) {
+            calculatedExpiry = lastValidationTimestamp + VALIDITY_COUNT_BASED;
+            productExpiryDate = formatTimestamp(calculatedExpiry);
+            productValidUntil = new Date(calculatedExpiry * 1000);
+            console.log(`  Expiry (Last Validation + ${VALIDITY_COUNT_BASED / 60} min): ${new Date(calculatedExpiry * 1000).toISOString()}`);
           }
         }
 
@@ -565,52 +540,81 @@ function parseAthenaTicketData(
         const product: ProductInfo = {
           name: prodInfo.name,
           fareType: prodInfo.fareType,
-          status: "active", // Will be determined below
+          status: "unused", // Default, will be determined below
+          validUntil: productValidUntil,
           trips: isMonthlyPass ? undefined : tripCount,
           productCode: productCode,
         };
 
-        // Determine product status
-        // First product is typically active, subsequent ones can be expired or unused
-        if (i === 0) {
-          product.status = "active";
-          activeProducts.push(product);
+        // Determine product status per ATH.ENA Protocol Specification:
+        // - Active: Slot 0 is occupied AND (Current Time < Calculated Expiry)
+        // - Expired: Expiry time has passed
+        // - Unused: Trip count > 0 but no validation timestamp exists in range
+        if (slotIndex === 0) {
+          // Slot 0 (primary product)
+          if (calculatedExpiry && now < calculatedExpiry) {
+            // Active: Slot 0 occupied AND current time < expiry
+            product.status = "active";
+            activeProducts.push(product);
+            isActive = true;
+            remainingTimeSeconds = calculatedExpiry - now;
+            expiryDate = productExpiryDate;
+            loadDate = productLoadDate;
+          } else if (calculatedExpiry) {
+            // Expired: Expiry time has passed
+            product.status = "expired";
+            expiredProducts.push(product);
+            expiryDate = productExpiryDate;
+            loadDate = productLoadDate;
+          } else if (isCountBased && tripCount > 0 && !lastValidationTimestamp) {
+            // Unused: Trip count > 0 but no validation timestamp exists
+            product.status = "unused";
+            unusedProducts.push(product);
+          } else {
+            // Default to active for display purposes
+            product.status = "active";
+            activeProducts.push(product);
+          }
         } else {
-          // Check if this product has been used (has some validation data or different state)
-          // Products with trip count > 0 that aren't active are typically expired
-          if (tripCount > 0 || isMonthlyPass) {
-            // For second monthly pass, check if it's been activated
-            if (isMonthlyPass) {
-              const bytes6to9 = productBytes.slice(6, 10);
-              const val6_9_LE =
-                (bytes6to9[0] |
-                  (bytes6to9[1] << 8) |
-                  (bytes6to9[2] << 16) |
-                  (bytes6to9[3] << 24)) >>>
-                0;
-
-              // If the timestamp is in a reasonable range, it's been used -> expired or still active
-              // If not, it's unused
-              if (val6_9_LE > 1577836800 && val6_9_LE < 1893456000) {
-                product.status = "expired";
-                expiredProducts.push(product);
-              } else {
-                product.status = "unused";
-                unusedProducts.push(product);
-              }
-            } else {
+          // Secondary product slots
+          if (calculatedExpiry && now < calculatedExpiry) {
+            // Still active (rare case - multiple active products)
+            product.status = "active";
+            activeProducts.push(product);
+          } else if (calculatedExpiry) {
+            // Expired
+            product.status = "expired";
+            expiredProducts.push(product);
+          } else if (isCountBased && tripCount > 0) {
+            // Has trips but no activation timestamp = unused
+            product.status = "unused";
+            unusedProducts.push(product);
+          } else if (isMonthlyPass) {
+            // Monthly pass in secondary slot
+            const bytes6to9 = productBytes.slice(6, 10);
+            const val6_9_LE =
+              (bytes6to9[0] |
+                (bytes6to9[1] << 8) |
+                (bytes6to9[2] << 16) |
+                (bytes6to9[3] << 24)) >>>
+              0;
+            // Check if it has been activated (has valid timestamp)
+            if (val6_9_LE >= TIMESTAMP_MIN && val6_9_LE < TIMESTAMP_MAX) {
               product.status = "expired";
               expiredProducts.push(product);
+            } else {
+              product.status = "unused";
+              unusedProducts.push(product);
             }
           }
         }
 
         console.log(
-          `  -> ${product.status}: ${product.name} ${product.fareType ? `(${product.fareType})` : ""}`,
+          `  -> Status: ${product.status.toUpperCase()} | ${product.name} ${product.fareType ? `(${product.fareType})` : ""}`,
         );
       }
 
-      console.log(`=== END PRODUCTS ===\n`);
+      console.log(`=== END PRODUCT SLOTS ===\n`);
     }
   }
 
@@ -1147,9 +1151,19 @@ export default function TicketScreen() {
                             );
                           }
                         } else {
-                          console.log(
-                            `File ${fileId} GetValue failed with status: ${vSw1.toString(16)} ${vSw2.toString(16)}`,
-                          );
+                          // Check for encryption status codes per ATH.ENA Protocol:
+                          // 0x91 0xAE = Authentication Error
+                          // 0x91 0xCA = Command Aborted (authentication required)
+                          if (vSw1 === 0x91 && (vSw2 === 0xae || vSw2 === 0xca)) {
+                            console.log(
+                              `File ${fileId}: Authentication required (encrypted)`,
+                            );
+                            isEncrypted = true;
+                          } else {
+                            console.log(
+                              `File ${fileId} GetValue failed with status: ${vSw1.toString(16)} ${vSw2.toString(16)}`,
+                            );
+                          }
                         }
                       } else {
                         console.log(
@@ -1188,6 +1202,12 @@ export default function TicketScreen() {
                           console.log(
                             `File ${fileId} records: ${recordBytes.map((b: number) => b.toString(16).padStart(2, "0")).join(" ")}`,
                           );
+                        } else if (rcSw1 === 0x91 && (rcSw2 === 0xae || rcSw2 === 0xca)) {
+                          // Per ATH.ENA Protocol: 0x91 0xAE or 0x91 0xCA = encrypted
+                          console.log(
+                            `File ${fileId}: Authentication required (encrypted)`,
+                          );
+                          isEncrypted = true;
                         }
                       }
                     } else {
@@ -1221,9 +1241,10 @@ export default function TicketScreen() {
                             `File ${fileId} data: ${dataBytes.map((b: number) => b.toString(16).padStart(2, "0")).join(" ")}`,
                           );
                           pages.push(...dataBytes);
-                        } else if (rSw1 === 0x91 && rSw2 === 0xae) {
+                        } else if (rSw1 === 0x91 && (rSw2 === 0xae || rSw2 === 0xca)) {
+                          // Per ATH.ENA Protocol: 0x91 0xAE or 0x91 0xCA = encrypted
                           console.log(
-                            `File ${fileId}: Authentication required`,
+                            `File ${fileId}: Authentication required (encrypted)`,
                           );
                           isEncrypted = true;
                         }

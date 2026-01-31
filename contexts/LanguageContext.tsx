@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 type Language = "en" | "el";
 
-interface Translations {
+export interface Translations {
   // Navigation
   stops: string;
   lines: string;

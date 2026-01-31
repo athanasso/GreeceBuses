@@ -43,7 +43,9 @@ A modern React Native mobile app for tracking Athens public transportation in re
 - View remaining trips on your card
 - See user category (Student, Regular, etc.)
 - Check active and expired products
-- Works with MIFARE DESFire EV1 cards
+- Real-time countdown for active tickets
+- Cash balance display
+- Works with MIFARE DESFire EV1/EV2/EV3 cards
 
 ### ⚙️ Settings
 
@@ -57,6 +59,7 @@ A modern React Native mobile app for tracking Athens public transportation in re
 - **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/) (file-based routing)
 - **State Management**: [TanStack Query](https://tanstack.com/query) (React Query)
 - **UI Components**: Custom components with [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)
+- **Animations**: [Moti](https://moti.fyi/) for skeleton loaders
 - **Maps**: [MapLibre GL JS](https://maplibre.org/) + [MapTiler](https://www.maptiler.com/) (Google Maps-like styling)
 - **Storage**: AsyncStorage for preferences
 - **NFC**: [react-native-nfc-manager](https://github.com/revtel/react-native-nfc-manager) for ATH.ENA card reading
@@ -108,7 +111,6 @@ A modern React Native mobile app for tracking Athens public transportation in re
 5. Run on a device/emulator:
    - Press `a` for Android
    - Press `i` for iOS
-   - Scan QR code with Expo Go app
 
 ### Building for Production
 
@@ -137,17 +139,30 @@ eas build --platform ios
 │   └── _layout.tsx        # Root layout
 ├── components/            # Reusable components
 │   ├── arrivals/          # Arrivals bottom sheet
-│   ├── map/               # Map components
+│   ├── map/               # Map components (OpenStreetMap, markers)
 │   ├── schedule/          # Schedule modal
 │   ├── settings/          # Settings modal
-│   └── ui/                # UI primitives
+│   ├── ticket/            # Ticket display components
+│   │   ├── NfcStatus.tsx      # NFC status screens
+│   │   ├── ScanPrompt.tsx     # Scan prompt UI
+│   │   └── TicketDisplay.tsx  # Ticket info display
+│   └── ui/                # UI primitives (SkeletonLoader)
 ├── contexts/              # React Context providers
 │   ├── ThemeContext.tsx   # Dark/Light mode
-│   └── LanguageContext.tsx # i18n translations
-├── lib/                   # Utilities
-│   ├── api.ts             # API client
+│   ├── LanguageContext.tsx # i18n translations
+│   └── FavoritesContext.tsx # Favorites management
+├── hooks/                 # Custom React hooks
+│   ├── use-color-scheme.ts
+│   └── use-theme-color.ts
+├── lib/                   # Utilities & API
+│   ├── api.ts             # OASA API client
 │   ├── queries.ts         # TanStack Query hooks
-│   └── types.ts           # TypeScript types
+│   ├── types.ts           # TypeScript types
+│   └── ticket/            # Ticket parsing module
+│       ├── types.ts       # Ticket interfaces
+│       ├── constants.ts   # ATH.ENA constants
+│       ├── parsers.ts     # DESFire parsers
+│       └── utils.ts       # Formatting utilities
 └── constants/             # Theme colors, config
 ```
 
@@ -159,6 +174,21 @@ This app uses the [OASA Telematics API](https://telematics.oasa.gr/) to fetch:
 - Real-time arrivals
 - Live bus locations
 - Daily schedules
+
+## NFC Ticket Scanning
+
+The app can read ATH.ENA transit cards using NFC technology:
+
+- **Supported Cards**: MIFARE DESFire EV1, EV2, EV3
+- **Data Retrieved**:
+  - Card ID and UID
+  - Remaining trips
+  - Active/expired products
+  - User category (Student, Senior, etc.)
+  - Cash balance
+  - Card production info
+
+**Note**: NFC scanning requires a physical device with NFC capability. It does not work in simulators/emulators.
 
 ## Screenshots
 

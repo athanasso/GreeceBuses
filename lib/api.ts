@@ -78,12 +78,8 @@ export async function getBusLocations(routeCode: string): Promise<BusLocation[]>
  * Get arrivals at a stop
  */
 export async function getStopArrivals(stopCode: string): Promise<StopArrival[]> {
-  console.log('Fetching arrivals for stop:', stopCode);
-  
   // API works with numeric stop codes like "10001" 
-  const result = await fetchAPI<StopArrival[]>('getStopArrivals', { p1: stopCode });
-  console.log('Arrivals for', stopCode, ':', result?.length || 0, 'buses');
-  return result;
+  return fetchAPI<StopArrival[]>('getStopArrivals', { p1: stopCode });
 }
 
 /**

@@ -99,6 +99,7 @@ export interface Translations {
   keepCardClose: string;
   validUntil: string;
   expiredAt: string;
+  reportParsingIssue: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -202,6 +203,7 @@ const translations: Record<Language, Translations> = {
     keepCardClose: "Keep card close to the device",
     validUntil: "Valid until",
     expiredAt: "Expired at",
+    reportParsingIssue: "Report parsing issue",
   },
   el: {
     // Navigation
@@ -304,6 +306,7 @@ const translations: Record<Language, Translations> = {
     keepCardClose: "Κρατήστε την κάρτα κοντά στη συσκευή",
     validUntil: "Ισχύει έως",
     expiredAt: "Έληξε στις",
+    reportParsingIssue: "Αναφορά προβλήματος",
   },
 };
 

@@ -6,12 +6,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-    ActivityIndicator,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Colors } from "@/constants/theme";
@@ -77,6 +79,57 @@ export function TicketDisplay({
               </Text>
             </View>
           )}
+
+          {/* Special Ticket Type Badges */}
+          <View style={styles.badgeRow}>
+            {/* Paper Ticket Badge */}
+            {ticketInfo.technology === "mifare_ultralight" && (
+              <View
+                style={[styles.typeBadge, { backgroundColor: "#8B5CF620" }]}
+              >
+                <Ionicons name="document-text" size={16} color="#8B5CF6" />
+                <Text style={[styles.typeBadgeText, { color: "#8B5CF6" }]}>
+                  Paper Ticket
+                </Text>
+              </View>
+            )}
+
+            {/* Reduced Fare Badge */}
+            {ticketInfo.isReducedFare && (
+              <View
+                style={[styles.typeBadge, { backgroundColor: "#3B82F620" }]}
+              >
+                <Ionicons name="pricetag" size={16} color="#3B82F6" />
+                <Text style={[styles.typeBadgeText, { color: "#3B82F6" }]}>
+                  Reduced Fare
+                </Text>
+              </View>
+            )}
+
+            {/* Airport Ticket Badge */}
+            {ticketInfo.isAirportTicket && (
+              <View
+                style={[styles.typeBadge, { backgroundColor: "#F59E0B20" }]}
+              >
+                <Ionicons name="airplane" size={16} color="#F59E0B" />
+                <Text style={[styles.typeBadgeText, { color: "#F59E0B" }]}>
+                  Airport
+                </Text>
+              </View>
+            )}
+
+            {/* New/Unused Card Badge */}
+            {ticketInfo.isNewCard && !ticketInfo.isBlankCard && (
+              <View
+                style={[styles.typeBadge, { backgroundColor: "#10B98120" }]}
+              >
+                <Ionicons name="sparkles" size={16} color="#10B981" />
+                <Text style={[styles.typeBadgeText, { color: "#10B981" }]}>
+                  New Card
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Timer (if active) */}
           {ticketInfo.isActive && remainingTime > 0 && (
@@ -408,6 +461,78 @@ export function TicketDisplay({
           )}
         </View>
 
+          {/* Debug Info Section - Only in development */}
+          {__DEV__ && ticketInfo.debugInfo && (
+            <View
+              style={[
+                styles.infoCard,
+                { backgroundColor: '#1a1a2e', borderColor: '#333355' },
+              ]}
+            >
+              <View style={styles.infoRow}>
+                <Ionicons name="bug-outline" size={24} color="#ff6b6b" />
+                <View style={styles.infoContent}>
+                  <Text
+                    style={[styles.infoLabel, { color: '#ff6b6b' }]}
+                  >
+                    Debug Info
+                  </Text>
+                  <Text style={[styles.infoValue, { color: '#aaaacc', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }]}>
+                    {ticketInfo.debugInfo}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+        {/* Report Issue Button */}
+        <TouchableOpacity
+          style={[styles.reportButton, { borderColor: colors.textSecondary }]}
+          onPress={async () => {
+            // Build product info string
+            const productLines: string[] = [];
+            if (ticketInfo.activeProduct) {
+              productLines.push(`Active: ${ticketInfo.activeProduct.name} - ${ticketInfo.activeProduct.status}`);
+            }
+            if (ticketInfo.expiredProduct) {
+              productLines.push(`Expired: ${ticketInfo.expiredProduct.name} - ${ticketInfo.expiredProduct.status}`);
+            }
+
+            const reportData = [
+              '=== Athens Buses Ticket Report ===',
+              `Date: ${new Date().toISOString()}`,
+              `Card ID: ${ticketInfo.cardId || 'N/A'}`,
+              `UID: ${ticketInfo.uid || 'N/A'}`,
+              `Technology: ${ticketInfo.technology}`,
+              `Is Active: ${ticketInfo.isActive}`,
+              `Is Encrypted: ${ticketInfo.isEncrypted}`,
+              `Trips Remaining: ${ticketInfo.tripsRemaining}`,
+              `Load Date: ${ticketInfo.loadDate || 'N/A'}`,
+              `Cash Balance: ${ticketInfo.cashBalance || 'N/A'}`,
+              '',
+              '=== Products ===',
+              productLines.length > 0 ? productLines.join('\n') : 'No products',
+              '',
+              '=== Debug Info ===',
+              ticketInfo.debugInfo || 'No debug info available',
+            ].join('\n');
+
+            try {
+              await Share.share({
+                message: reportData,
+                title: 'Athens Buses Ticket Report',
+              });
+            } catch (error) {
+              console.error('Error sharing:', error);
+            }
+          }}
+        >
+          <Ionicons name="bug-outline" size={18} color={colors.textSecondary} />
+          <Text style={[styles.reportButtonText, { color: colors.textSecondary }]}>
+            {t.reportParsingIssue}
+          </Text>
+        </TouchableOpacity>
+
         {/* Scan Again Hint */}
         <View style={styles.scanHint}>
           <Ionicons
@@ -618,5 +743,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     textAlign: "center",
+  },
+  badgeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 8,
+  },
+  typeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  typeBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  reportButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: "dashed",
+  },
+  reportButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
 });

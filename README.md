@@ -39,13 +39,13 @@ A modern React Native mobile app for tracking Athens public transportation in re
 
 ### 🎫 NFC Ticket Scanner
 
-- Scan ATH.ENA transit cards using NFC
-- View remaining trips on your card
+- Scan ATH.ENA plastic cards and paper tickets using NFC
+- View remaining trips on your card/ticket
 - See user category (Student, Regular, etc.)
 - Check active and expired products
 - Real-time countdown for active tickets
-- Cash balance display
-- Works with MIFARE DESFire EV1/EV2/EV3 cards
+- Cash balance display (plastic cards)
+- Works with MIFARE DESFire (plastic) and MIFARE Ultralight (paper)
 
 ### ⚙️ Settings
 
@@ -177,16 +177,20 @@ This app uses the [OASA Telematics API](https://telematics.oasa.gr/) to fetch:
 
 ## NFC Ticket Scanning
 
-The app can read ATH.ENA transit cards using NFC technology:
+The app can read ATH.ENA transit cards and paper tickets using NFC technology:
 
-- **Supported Cards**: MIFARE DESFire EV1, EV2, EV3
+- **Supported Cards**:
+  - **Plastic Cards**: MIFARE DESFire EV1, EV2, EV3 (personalized and anonymous)
+  - **Paper Tickets**: MIFARE Ultralight (90-minute tickets, airport tickets, etc.)
 - **Data Retrieved**:
   - Card ID and UID
   - Remaining trips
   - Active/expired products
   - User category (Student, Senior, etc.)
-  - Cash balance
+  - Cash balance (plastic cards only)
+  - Ticket validity countdown
   - Card production info
+- **Report Issues**: Users can tap "Report parsing issue" to share debug data if the ticket information appears incorrect
 
 **Note**: NFC scanning requires a physical device with NFC capability. It does not work in simulators/emulators.
 

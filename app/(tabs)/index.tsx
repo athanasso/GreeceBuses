@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { Colors } from "@/constants/theme";
+import { useCity } from "@/contexts/CityContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBusLocations, useClosestStops, useStops } from "@/lib/queries";
@@ -25,15 +26,10 @@ import {
 } from "@/components/map/OpenStreetMap";
 import { SettingsModal } from "@/components/settings/SettingsModal";
 
-// Athens center coordinates
-const ATHENS_CENTER = {
-  latitude: 37.9838,
-  longitude: 23.7275,
-};
-
 export default function StopsScreen() {
   const { theme: colorScheme } = useTheme();
   const { t } = useLanguage();
+  const { city, cityConfig } = useCity();
   const colors = Colors[colorScheme];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -48,16 +44,19 @@ export default function StopsScreen() {
   const [mapCenter, setMapCenter] = useState<{
     latitude: number;
     longitude: number;
-  }>(ATHENS_CENTER);
+  }>({ latitude: cityConfig.center.lat, longitude: cityConfig.center.lng });
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
   const [selectedRouteCode] = useState<string | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [shouldFetchStops, setShouldFetchStops] = useState(true); // Only fetch when zoomed in
 
   // Queries - use mapCenter for fetching stops (updates when map moves)
+  // Only fetch when shouldFetchStops is true (zoomed in enough)
   const { data: nearbyStops } = useClosestStops(
     mapCenter.latitude,
     mapCenter.longitude,
+    { enabled: shouldFetchStops }
   );
 
   const { data: busLocations } = useBusLocations(selectedRouteCode, {
@@ -126,6 +125,17 @@ export default function StopsScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Reset map and data when city changes
+  useEffect(() => {
+    const newCenter = { latitude: cityConfig.center.lat, longitude: cityConfig.center.lng };
+    setMapCenter(newCenter);
+    setSelectedStop(null);
+    // Fly to new city center
+    if (mapRef.current) {
+      mapRef.current.centerOnLocation(newCenter.latitude, newCenter.longitude);
+    }
+  }, [city, cityConfig.center.lat, cityConfig.center.lng]);
+
   // Handle stop press from nearby cards
   const handleStopPress = useCallback((stop: Stop) => {
     setSelectedStop(stop);
@@ -150,16 +160,17 @@ export default function StopsScreen() {
     setSelectedStop(null);
   }, []);
 
-  // Handle map region change - load stops for new area
+  // Handle map region change - load stops for new area (only when zoomed in)
   const handleRegionChange = useCallback(
-    (center: { latitude: number; longitude: number }) => {
-      setMapCenter(center);
+    (region: { latitude: number; longitude: number; zoom: number; shouldFetchStops: boolean }) => {
+      setMapCenter({ latitude: region.latitude, longitude: region.longitude });
+      setShouldFetchStops(region.shouldFetchStops);
     },
     [],
   );
 
-  // Get stops to display (nearby or route stops)
-  const stopsToDisplay = routeStops || nearbyStops || [];
+  // Get stops to display (nearby or route stops) - only when zoomed in
+  const stopsToDisplay = shouldFetchStops ? (routeStops || nearbyStops || []) : [];
 
   // Convert stops to map markers
   const mapMarkers: MapMarker[] = stopsToDisplay.slice(0, 30).map((stop) => ({

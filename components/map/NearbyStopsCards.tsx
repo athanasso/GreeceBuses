@@ -89,14 +89,25 @@ export function NearbyStopsCards({
 function formatDistance(distance?: string): string {
   if (!distance) return '';
   
-  const meters = parseFloat(distance);
-  if (isNaN(meters)) return '';
+  const value = parseFloat(distance);
+  if (isNaN(value)) return '';
   
-  // API returns distance in meters
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`;
+  // OASA returns distance in meters, OASTH we calculate in km
+  // If value < 10, assume it's in km (OASTH), otherwise meters (OASA)
+  if (value < 10) {
+    // Likely in km (from OASTH calculation)
+    const meters = value * 1000;
+    if (meters < 1000) {
+      return `${Math.round(meters)}m`;
+    }
+    return `${value.toFixed(1)}km`;
   }
-  return `${(meters / 1000).toFixed(1)}km`;
+  
+  // OASA returns in meters
+  if (value < 1000) {
+    return `${Math.round(value)}m`;
+  }
+  return `${(value / 1000).toFixed(1)}km`;
 }
 
 const styles = StyleSheet.create({

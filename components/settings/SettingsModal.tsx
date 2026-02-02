@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { Colors } from "@/constants/theme";
+import { useCity } from "@/contexts/CityContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -22,6 +23,7 @@ interface SettingsModalProps {
 export function SettingsModal({ visible, onClose }: SettingsModalProps) {
   const { theme, themeMode, setThemeMode } = useTheme();
   const { language, setLanguage, t } = useLanguage();
+  const { city, setCity } = useCity();
   const colors = Colors[theme];
 
   const handleGithubPress = () => {
@@ -215,6 +217,65 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
               </View>
             </View>
 
+            {/* City Section */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.accent }]}>
+                {t.city.toUpperCase()}
+              </Text>
+
+              <View style={styles.languageContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.langButton,
+                    {
+                      backgroundColor:
+                        city === "athens" ? colors.accent : "transparent",
+                      borderColor:
+                        city === "athens" ? colors.accent : colors.border,
+                    },
+                  ]}
+                  onPress={() => setCity("athens")}
+                >
+                  <Text
+                    style={[
+                      styles.langText,
+                      { color: city === "athens" ? "#fff" : colors.text },
+                    ]}
+                  >
+                    {t.athens}
+                  </Text>
+                  {city === "athens" && (
+                    <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.langButton,
+                    {
+                      backgroundColor:
+                        city === "thessaloniki" ? colors.accent : "transparent",
+                      borderColor:
+                        city === "thessaloniki" ? colors.accent : colors.border,
+                    },
+                  ]}
+                  onPress={() => setCity("thessaloniki")}
+                >
+                  <Text
+                    style={[
+                      styles.langText,
+                      { color: city === "thessaloniki" ? "#fff" : colors.text },
+                    ]}
+                  >
+                    {t.thessaloniki}
+                  </Text>
+                  {city === "thessaloniki" && (
+                    <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* About Section */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.accent }]}>
@@ -232,7 +293,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                   {t.developedBy} athanasso
                 </Text>
                 <Text style={[styles.version, { color: colors.textSecondary }]}>
-                  {t.version} 1.2.1
+                  {t.version} 2.0.0
                 </Text>
 
                 <TouchableOpacity

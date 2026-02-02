@@ -5,12 +5,14 @@ import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { Colors } from "@/constants/theme";
+import { useCity } from "@/contexts/CityContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TabLayout() {
   const { theme: colorScheme } = useTheme();
   const { t } = useLanguage();
+  const { isAthens } = useCity();
 
   return (
     <Tabs
@@ -63,6 +65,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="card-outline" size={size} color={color} />
           ),
+          // Hide ticket tab for Thessaloniki (NFC scanning only works in Athens)
+          href: isAthens ? undefined : null,
         }}
       />
     </Tabs>

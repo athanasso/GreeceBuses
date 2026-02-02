@@ -1,6 +1,6 @@
-# Athens Buses 🚌
+# Greece Buses 🚌
 
-A modern React Native mobile app for tracking Athens public transportation in real-time. Built with Expo and powered by the OASA Telematics API.
+A modern React Native mobile app for tracking public transportation in Athens and Thessaloniki in real-time. Built with Expo and powered by the OASA (Athens) and OASTH (Thessaloniki) Telematics APIs.
 
 ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue)
 ![Expo](https://img.shields.io/badge/Expo-SDK%2054-black)
@@ -49,6 +49,7 @@ A modern React Native mobile app for tracking Athens public transportation in re
 
 ### ⚙️ Settings
 
+- **City selection** - Switch between Athens (OASA) and Thessaloniki (OASTH)
 - **Dark/Light/System theme** - Persisted preference
 - **Language switching** - English & Greek (Ελληνικά)
 - All stop and route names display in selected language
@@ -168,12 +169,20 @@ eas build --platform ios
 
 ## API
 
-This app uses the [OASA Telematics API](https://telematics.oasa.gr/) to fetch:
+This app uses two telematics APIs:
 
+### OASA (Athens)
+The [OASA Telematics API](https://telematics.oasa.gr/) provides:
 - Bus stops and routes
 - Real-time arrivals
 - Live bus locations
 - Daily schedules
+
+### OASTH (Thessaloniki)
+The [OASTH API](https://old.oasth.gr/el/api) provides:
+- Bus stops and routes
+- Real-time arrivals
+- Live bus locations
 
 ## NFC Ticket Scanning
 
@@ -214,4 +223,4 @@ Developed by [athanasso](https://github.com/athanasso)
 
 ---
 
-Made with ❤️ in Athens, Greece
+Made with ❤️ in Greece

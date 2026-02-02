@@ -10,6 +10,7 @@ import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+import { CityProvider } from "@/contexts/CityContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
@@ -75,9 +76,11 @@ export default function RootLayout() {
       <GestureHandlerRootView style={styles.container}>
         <ThemeProvider>
           <LanguageProvider>
-            <FavoritesProvider>
-              <RootLayoutNav />
-            </FavoritesProvider>
+            <CityProvider>
+              <FavoritesProvider>
+                <RootLayoutNav />
+              </FavoritesProvider>
+            </CityProvider>
           </LanguageProvider>
         </ThemeProvider>
       </GestureHandlerRootView>

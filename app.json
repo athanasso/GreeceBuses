@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Athens Buses",
-    "slug": "athens-buses",
-    "version": "1.2.1",
+    "name": "Greece Buses",
+    "slug": "greece-buses",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "athensbuses",
+    "scheme": "greecebuses",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -28,7 +28,7 @@
           "apiKey": "AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8"
         }
       },
-      "package": "com.athanasso.AthensBuses"
+      "package": "com.athanasso.GreeceBuses"
     },
     "web": {
       "output": "static",

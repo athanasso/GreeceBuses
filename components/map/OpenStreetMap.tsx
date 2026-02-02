@@ -29,7 +29,7 @@ export interface OpenStreetMapProps {
   userLocation?: { latitude: number; longitude: number } | null;
   onMarkerPress?: (markerId: string) => void;
   onMapReady?: () => void;
-  onRegionChange?: (center: { latitude: number; longitude: number }) => void;
+  onRegionChange?: (region: { latitude: number; longitude: number; zoom: number; shouldFetchStops: boolean }) => void;
   darkMode?: boolean;
 }
 
@@ -53,6 +53,10 @@ function OpenStreetMapComponent(
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+  
+  // Store initial center to prevent map reload on center prop changes
+  const initialCenterRef = useRef({ latitude: center.latitude, longitude: center.longitude });
+  const initialZoomRef = useRef(zoom);
 
   // Expose centerOnLocation method to parent
   useImperativeHandle(
@@ -75,8 +79,12 @@ function OpenStreetMapComponent(
     ? `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_API_KEY}`
     : `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`;
 
-  // Memoize the initial HTML - only recreate when center/zoom/darkMode changes
+  // Memoize the initial HTML - only recreate when darkMode changes (not on center/zoom changes)
   const mapHtml = useMemo(() => {
+    const initLat = initialCenterRef.current.latitude;
+    const initLng = initialCenterRef.current.longitude;
+    const initZoom = initialZoomRef.current;
+    
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -114,8 +122,8 @@ function OpenStreetMapComponent(
     var map = new maplibregl.Map({
       container: 'map',
       style: '${mapStyle}',
-      center: [${center.longitude}, ${center.latitude}],
-      zoom: ${zoom},
+      center: [${initLng}, ${initLat}],
+      zoom: ${initZoom},
       attributionControl: false,
       logoPosition: 'bottom-left'
     });
@@ -204,9 +212,9 @@ function OpenStreetMapComponent(
     });
     
     // Track last reported center to avoid unnecessary updates
-    var lastReportedCenter = { lat: ${center.latitude}, lng: ${
-      center.longitude
-    } };
+    var lastReportedCenter = { lat: ${initLat}, lng: ${initLng} };
+    var lastReportedZoom = ${initZoom};
+    var MIN_ZOOM_FOR_STOPS = 14; // Only fetch stops when zoom >= 14
     
     // Calculate distance between two points in meters (Haversine formula)
     function getDistance(lat1, lng1, lat2, lng2) {
@@ -220,25 +228,47 @@ function OpenStreetMapComponent(
       return R * c;
     }
     
-    // Only notify when map is panned more than 500m, not on zoom
+    // Notify on map move/zoom - only fetch stops when zoomed in enough
     map.on('moveend', function() {
       var center = map.getCenter();
+      var currentZoom = map.getZoom();
       var distance = getDistance(lastReportedCenter.lat, lastReportedCenter.lng, center.lat, center.lng);
       
-      // Only trigger if moved more than 500 meters
-      if (distance > 500) {
+      // Check if we crossed the zoom threshold
+      var wasZoomedIn = lastReportedZoom >= MIN_ZOOM_FOR_STOPS;
+      var isZoomedIn = currentZoom >= MIN_ZOOM_FOR_STOPS;
+      var crossedZoomThreshold = wasZoomedIn !== isZoomedIn;
+      
+      // Trigger update if:
+      // 1. Zoomed in enough AND (moved more than 500m OR just zoomed in past threshold)
+      // 2. Just zoomed out past threshold (to clear markers)
+      if (isZoomedIn && (distance > 500 || crossedZoomThreshold)) {
         lastReportedCenter = { lat: center.lat, lng: center.lng };
+        lastReportedZoom = currentZoom;
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'regionChange',
           latitude: center.lat,
-          longitude: center.lng
+          longitude: center.lng,
+          zoom: currentZoom,
+          shouldFetchStops: true
+        }));
+      } else if (crossedZoomThreshold && !isZoomedIn) {
+        // Zoomed out past threshold - notify to clear stops
+        lastReportedZoom = currentZoom;
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'regionChange',
+          latitude: center.lat,
+          longitude: center.lng,
+          zoom: currentZoom,
+          shouldFetchStops: false
         }));
       }
     });
   </script>
 </body>
 </html>`;
-  }, [center.latitude, center.longitude, zoom, darkMode, mapStyle]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [darkMode, mapStyle]); // Only recreate HTML when theme changes, not on center/zoom changes
 
   // Update markers when they change
   useEffect(() => {
@@ -284,6 +314,8 @@ function OpenStreetMapComponent(
           onRegionChange({
             latitude: data.latitude,
             longitude: data.longitude,
+            zoom: data.zoom || 15,
+            shouldFetchStops: data.shouldFetchStops ?? true,
           });
         }
       } catch {

@@ -61,6 +61,9 @@ export interface Translations {
   lightMode: string;
   systemDefault: string;
   language: string;
+  city: string;
+  athens: string;
+  thessaloniki: string;
   about: string;
   developedBy: string;
   version: string;
@@ -100,6 +103,8 @@ export interface Translations {
   validUntil: string;
   expiredAt: string;
   reportParsingIssue: string;
+  comingSoon: string;
+  thessalonikiComingSoon: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -115,6 +120,8 @@ const translations: Record<Language, Translations> = {
     loading: "Loading...",
     noData: "No data available",
     error: "An error occurred",
+    comingSoon: "Coming Soon",
+    thessalonikiComingSoon: "Thessaloniki support is coming soon! Switch back to Athens for now.",
     retry: "Retry",
     close: "Close",
     back: "Back",
@@ -162,6 +169,9 @@ const translations: Record<Language, Translations> = {
     lightMode: "Light Mode",
     systemDefault: "System Default",
     language: "Language",
+    city: "City",
+    athens: "Athens",
+    thessaloniki: "Thessaloniki",
     about: "About",
     developedBy: "Developed by",
     version: "Version",
@@ -217,6 +227,8 @@ const translations: Record<Language, Translations> = {
     loading: "Φόρτωση...",
     noData: "Δεν υπάρχουν δεδομένα",
     error: "Προέκυψε σφάλμα",
+    comingSoon: "Σύντομα Διαθέσιμο",
+    thessalonikiComingSoon: "Η υποστήριξη της Θεσσαλονίκης έρχεται σύντομα! Επιλέξτε Αθήνα προς το παρόν.",
     retry: "Επανάληψη",
     close: "Κλείσιμο",
     back: "Πίσω",
@@ -264,6 +276,9 @@ const translations: Record<Language, Translations> = {
     lightMode: "Φωτεινή Λειτουργία",
     systemDefault: "Προεπιλογή Συστήματος",
     language: "Γλώσσα",
+    city: "Πόλη",
+    athens: "Αθήνα",
+    thessaloniki: "Θεσσαλονίκη",
     about: "Σχετικά",
     developedBy: "Ανάπτυξη από",
     version: "Έκδοση",

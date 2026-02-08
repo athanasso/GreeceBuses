@@ -46,6 +46,15 @@ A modern React Native mobile app for tracking public transportation in Athens an
 - Real-time countdown for active tickets
 - Cash balance display (plastic cards)
 - Works with MIFARE DESFire (plastic) and MIFARE Ultralight (paper)
+- **Contactless payment info** - Learn about using your credit card directly at validation terminals
+
+### 🗺️ Network Map
+
+- View transit network maps for Athens and Thessaloniki
+- Pinch-to-zoom support (up to 4x magnification)
+- Pan/drag when zoomed in
+- Bounded scrolling - map never shows empty space
+- Reset button for quick return to default view
 
 ### ⚙️ Settings
 
@@ -143,6 +152,7 @@ If you run `npx expo prebuild`, ensure the manifest is regenerated with this set
 │   │   ├── lines.tsx      # Bus Lines screen
 │   │   ├── favorites.tsx  # Favorites screen
 │   │   ├── ticket.tsx     # NFC Ticket Scanner
+│   │   ├── network-map.tsx # Transit network map viewer
 │   │   └── _layout.tsx    # Tab layout
 │   ├── line/[lineCode].tsx    # Line details screen
 │   ├── stop/[stopCode].tsx    # Stop details screen

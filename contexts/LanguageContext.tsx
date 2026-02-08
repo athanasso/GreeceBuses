@@ -10,6 +10,7 @@ export interface Translations {
   favorites: string;
   ticket: string;
   settings: string;
+  networkMap: string;
 
   // Common
   loading: string;
@@ -105,6 +106,9 @@ export interface Translations {
   reportParsingIssue: string;
   comingSoon: string;
   thessalonikiComingSoon: string;
+  contactlessPaymentInfo: string;
+  contactlessPaymentLink: string;
+  contactlessPaymentUrl: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -115,6 +119,7 @@ const translations: Record<Language, Translations> = {
     favorites: "Favorites",
     ticket: "Ticket",
     settings: "Settings",
+    networkMap: "Map",
 
     // Common
     loading: "Loading...",
@@ -214,6 +219,9 @@ const translations: Record<Language, Translations> = {
     validUntil: "Valid until",
     expiredAt: "Expired at",
     reportParsingIssue: "Report parsing issue",
+    contactlessPaymentInfo: "You can now use your credit card directly as a ticket by touching it to the validation terminal.",
+    contactlessPaymentLink: "More info here",
+    contactlessPaymentUrl: "https://www.oasa.gr/en/tickets/products/contactless-payments-with-bank-cards/",
   },
   el: {
     // Navigation
@@ -222,6 +230,7 @@ const translations: Record<Language, Translations> = {
     favorites: "Αγαπημένα",
     ticket: "Εισιτήριο",
     settings: "Ρυθμίσεις",
+    networkMap: "Χάρτης",
 
     // Common
     loading: "Φόρτωση...",
@@ -322,6 +331,9 @@ const translations: Record<Language, Translations> = {
     validUntil: "Ισχύει έως",
     expiredAt: "Έληξε στις",
     reportParsingIssue: "Αναφορά προβλήματος",
+    contactlessPaymentInfo: "Μπορείτε τώρα να χρησιμοποιήσετε την πιστωτική σας κάρτα απευθείας ως εισιτήριο, ακουμπώντας την στο ακυρωτικό μηχάνημα.",
+    contactlessPaymentLink: "Περισσότερες πληροφορίες εδώ",
+    contactlessPaymentUrl: "https://www.oasa.gr/tickets/products/contactless-payments-with-bank-cards/",
   },
 };
 

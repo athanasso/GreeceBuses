@@ -69,6 +69,15 @@ export default function TabLayout() {
           href: isAthens ? undefined : null,
         }}
       />
+      <Tabs.Screen
+        name="network-map"
+        options={{
+          title: t.networkMap,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="subway-outline" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

@@ -17,9 +17,11 @@ export interface MapMarker {
   id: string;
   latitude: number;
   longitude: number;
-  type: "stop" | "bus";
+  type: "stop" | "bus" | "station";
   label?: string;
   selected?: boolean;
+  color?: string;
+  lines?: { code: string; color: string }[];
 }
 
 export interface OpenStreetMapProps {
@@ -100,20 +102,34 @@ function OpenStreetMapComponent(
     .maplibregl-ctrl-logo { display: none !important; }
     
     /* Custom marker styles */
-    .marker-stop {
-      cursor: pointer;
-    }
-    .marker-bus {
-      cursor: pointer;
-    }
+    .marker-stop { cursor: pointer; }
+    .marker-bus { cursor: pointer; }
+    .marker-station { cursor: pointer; box-shadow: 0 0 4px rgba(0,0,0,0.5); }
     .marker-user {
       width: 20px;
       height: 20px;
       background: #3b82f6;
       border: 3px solid #fff;
       border-radius: 50%;
+      border-radius: 50%;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
+    
+    /* Popup styling */
+    .station-popup .name { font-family: -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: ${
+      darkMode ? "#fff" : "#1a1a2e"
+    }; margin-bottom: 4px; }
+    .station-popup .lines { display: flex; gap: 4px; flex-wrap: wrap; }
+    .station-popup .line-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 600; }
+    .maplibregl-popup-content { background: ${
+      darkMode ? "#2a2a3e" : "#fff"
+    } !important; border-radius: 12px !important; padding: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; }
+    .maplibregl-popup-tip { border-top-color: ${
+      darkMode ? "#2a2a3e" : "#fff"
+    } !important; }
+    .maplibregl-popup-close-button { color: ${
+      darkMode ? "#aaa" : "#666"
+    } !important; font-size: 18px !important; right: 6px !important; top: 4px !important; }
   </style>
 </head>
 <body>
@@ -139,14 +155,6 @@ function OpenStreetMapComponent(
         '</svg>';
     }
     
-    // Create SVG for bus marker
-    function createBusMarkerSVG() {
-      return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
-        '<circle cx="12" cy="12" r="10" fill="#22c55e" stroke="#fff" stroke-width="2"/>' +
-        '<text x="12" y="16" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">🚌</text>' +
-        '</svg>';
-    }
-    
     function clearMarkers() {
       currentMarkers.forEach(function(marker) {
         marker.remove();
@@ -160,14 +168,25 @@ function OpenStreetMapComponent(
       if (markersData && markersData.length > 0) {
         markersData.forEach(function(m) {
           var el = document.createElement('div');
+          var marker;
           
           if (m.type === 'stop') {
             var color = '#8B5CF6';
             el.className = 'marker-stop';
             el.innerHTML = createStopPinSVG(color, m.selected);
-            var offset = m.selected ? [0, -18] : [0, -14];
+            marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+              .setLngLat([m.longitude, m.latitude])
+              .addTo(map);
+          } else if (m.type === 'station') {
+            // Station marker - colored circle
+            el.className = 'marker-station';
+            el.style.width = '14px';
+            el.style.height = '14px';
+            el.style.background = m.color || '#333';
+            el.style.border = '2px solid #fff';
+            el.style.borderRadius = '50%';
             
-            var marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            marker = new maplibregl.Marker({ element: el })
               .setLngLat([m.longitude, m.latitude])
               .addTo(map);
           } else {
@@ -180,13 +199,30 @@ function OpenStreetMapComponent(
             el.style.borderRadius = '50%';
             el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
             
-            var marker = new maplibregl.Marker({ element: el })
+            el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+              '<text x="12" y="16" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">🚌</text>' +
+              '</svg>';
+            
+            marker = new maplibregl.Marker({ element: el })
               .setLngLat([m.longitude, m.latitude])
               .addTo(map);
           }
           
+          
           el.addEventListener('click', function(e) {
             e.stopPropagation();
+            if (m.type === 'station') {
+               var badges = '';
+               if (m.lines && m.lines.length) {
+                 badges = m.lines.map(function(l) {
+                   return '<span class="line-badge" style="background:' + l.color + '">' + l.code + '</span>';
+                 }).join('');
+               }
+               new maplibregl.Popup({ closeButton: true, maxWidth: '220px' })
+                 .setLngLat([m.longitude, m.latitude])
+                 .setHTML('<div class="station-popup"><div class="name">' + (m.label || 'Station') + '</div><div class="lines">' + badges + '</div></div>')
+                 .addTo(map);
+            }
             window.ReactNativeWebView.postMessage(JSON.stringify({type: 'markerPress', id: m.id}));
           });
           

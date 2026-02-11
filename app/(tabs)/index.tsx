@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
   StyleSheet,
@@ -15,6 +15,7 @@ import { useCity } from "@/contexts/CityContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useBusLocations, useClosestStops, useStops } from "@/lib/queries";
+import { getTransitNetwork, type TransitStation } from "@/lib/transit-lines";
 import type { Stop } from "@/lib/types";
 
 import { ArrivalsSheet } from "@/components/arrivals/ArrivalsSheet";
@@ -29,7 +30,7 @@ import { SettingsModal } from "@/components/settings/SettingsModal";
 export default function StopsScreen() {
   const { theme: colorScheme } = useTheme();
   const { t } = useLanguage();
-  const { city, cityConfig } = useCity();
+  const { city, cityConfig, isAthens } = useCity(); // Added isAthens
   const colors = Colors[colorScheme];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -63,6 +64,40 @@ export default function StopsScreen() {
     enabled: isMapReady,
   });
   const { data: routeStops } = useStops(selectedRouteCode);
+
+  // Get transit stations
+  const transitNetwork = useMemo(() => getTransitNetwork(isAthens ? "athens" : "thessaloniki"), [isAthens]);
+  
+  const stationMarkers: MapMarker[] = useMemo(() => {
+    return transitNetwork.stations.map((station: TransitStation) => {
+      const lineId = station.lineIds[0];
+      const line = transitNetwork.lines.find((l) => l.id === lineId);
+      
+      const lines = station.lineIds.map((lid) => {
+        const l = transitNetwork.lines.find((x) => x.id === lid);
+        let code = lid.toUpperCase();
+        if (lid.startsWith('line')) code = lid.replace('line', 'M').toUpperCase();
+        if (lid === 'thessMetro') code = 'M1';
+        if (lid === 'thessKalamaria') code = 'M2';
+        if (lid === 'thessWest') code = 'M2'; // Future extension
+        
+        return {
+          code: code,
+          color: l?.color || "#555"
+        };
+      });
+
+      return {
+        id: station.id,
+        latitude: station.latitude,
+        longitude: station.longitude,
+        type: "station",
+        label: station.name,
+        color: line?.color || "#555",
+        lines: lines,
+      };
+    });
+  }, [transitNetwork]);
 
   // Get user location on mount
   useEffect(() => {
@@ -145,6 +180,15 @@ export default function StopsScreen() {
   // Handle marker press from map
   const handleMarkerPress = useCallback(
     (markerId: string) => {
+      // Check if it's a transit station
+      const station = transitNetwork.stations.find((s: TransitStation) => s.id === markerId);
+      if (station) {
+         // Optionally show station info. For now, we do nothing or could alert.
+         // We could implement a simple BottomSheet view for stations too?
+         // Just return to avoid crash.
+         return; 
+      }
+
       const stops = routeStops || nearbyStops || [];
       const stop = stops.find((s) => s.StopCode === markerId);
       if (stop) {
@@ -152,7 +196,7 @@ export default function StopsScreen() {
         bottomSheetRef.current?.snapToIndex(0);
       }
     },
-    [routeStops, nearbyStops],
+    [routeStops, nearbyStops, transitNetwork]
   );
 
   // Handle sheet close
@@ -191,7 +235,7 @@ export default function StopsScreen() {
     label: bus.VEH_NO,
   }));
 
-  const allMarkers = [...mapMarkers, ...busMarkers];
+  const allMarkers = [...stationMarkers, ...mapMarkers, ...busMarkers];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

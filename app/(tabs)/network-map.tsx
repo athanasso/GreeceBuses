@@ -6,24 +6,25 @@
  */
 
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import * as Location from "expo-location";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    PanGestureHandler,
-    PinchGestureHandler,
-    State,
-    type PanGestureHandlerStateChangeEvent,
-    type PinchGestureHandlerStateChangeEvent
+  PanGestureHandler,
+  PinchGestureHandler,
+  State,
+  type PanGestureHandlerStateChangeEvent,
+  type PinchGestureHandlerStateChangeEvent
 } from "react-native-gesture-handler";
 import { WebView } from "react-native-webview";
 
@@ -141,6 +142,36 @@ function InteractiveMap({ isAthens, colors, darkMode, language }: InteractiveMap
   const webViewRef = useRef<WebView>(null);
   const [selectedStation, setSelectedStation] = useState<TransitStation | null>(null);
   const [enabledLines, setEnabledLines] = useState<Record<string, boolean>>({});
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null;
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+      subscription = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 10 },
+        (loc) => {
+          setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+        }
+      );
+    })();
+    return () => {
+      if (subscription) subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (userLocation && webViewRef.current) {
+      webViewRef.current.injectJavaScript(`
+        if (typeof updateUserLocation === 'function') {
+          updateUserLocation(${userLocation.lat}, ${userLocation.lng});
+        }
+        true;
+      `);
+    }
+  }, [userLocation]);
 
   const network = useMemo(() => getTransitNetwork(isAthens ? "athens" : "thessaloniki"), [isAthens]);
 
@@ -217,6 +248,7 @@ function InteractiveMap({ isAthens, colors, darkMode, language }: InteractiveMap
     .maplibregl-popup-content { background: ${darkMode ? "#2a2a3e" : "#fff"} !important; border-radius: 12px !important; padding: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; }
     .maplibregl-popup-tip { border-top-color: ${darkMode ? "#2a2a3e" : "#fff"} !important; }
     .maplibregl-popup-close-button { color: ${darkMode ? "#aaa" : "#666"} !important; font-size: 18px !important; right: 6px !important; top: 4px !important; }
+    .user-marker { width: 14px; height: 14px; background-color: #4285F4; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.3); }
   </style>
 </head>
 <body>
@@ -289,6 +321,20 @@ function InteractiveMap({ isAthens, colors, darkMode, language }: InteractiveMap
       if (map.getSource('transit-lines')) map.getSource('transit-lines').setData(linesData);
       if (map.getSource('transit-stations')) map.getSource('transit-stations').setData(stationsData);
     }
+
+    var userMarker = null;
+    function updateUserLocation(lat, lng) {
+      if (!map) return;
+      if (!userMarker) {
+        var el = document.createElement('div');
+        el.className = 'user-marker';
+        userMarker = new maplibregl.Marker({ element: el })
+          .setLngLat([lng, lat])
+          .addTo(map);
+      } else {
+        userMarker.setLngLat([lng, lat]);
+      }
+    }
   </script>
 </body>
 </html>`;
@@ -320,6 +366,29 @@ function InteractiveMap({ isAthens, colors, darkMode, language }: InteractiveMap
     },
     [enabledLines, network, buildLinesGeoJSON, buildStationsGeoJSON]
   );
+
+  const handleCenterOnUser = useCallback(async () => {
+    if (isLocating) return;
+    setIsLocating(true);
+    try {
+      let loc = userLocation;
+      if (!loc) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const location = await Location.getCurrentPositionAsync({});
+        loc = { lat: location.coords.latitude, lng: location.coords.longitude };
+        setUserLocation(loc);
+      }
+      if (loc && webViewRef.current) {
+        webViewRef.current.injectJavaScript(`
+          map.flyTo({ center: [${loc.lng}, ${loc.lat}], zoom: 15 });
+          true;
+        `);
+      }
+    } finally {
+      setTimeout(() => setIsLocating(false), 500);
+    }
+  }, [userLocation, isLocating]);
 
   const displayLines = useMemo(() => {
     const seen = new Set<string>();
@@ -399,6 +468,23 @@ function InteractiveMap({ isAthens, colors, darkMode, language }: InteractiveMap
           overScrollMode="never"
         />
       </View>
+
+      {/* Location Button */}
+      <TouchableOpacity
+        style={[
+          styles.locationButton,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+            bottom: selectedStation ? 140 : 32,
+          },
+        ]}
+        onPress={handleCenterOnUser}
+        disabled={isLocating}
+        activeOpacity={0.7}
+      >
+        <Ionicons name={isLocating ? "locate-outline" : "locate"} size={22} color={colors.accent} />
+      </TouchableOpacity>
 
       {/* Selected Station Info */}
       {selectedStation && (
@@ -762,5 +848,21 @@ const styles = StyleSheet.create({
   },
   instructionsText: {
     fontSize: 14,
+  },
+  locationButton: {
+    position: "absolute",
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 10,
   },
 });

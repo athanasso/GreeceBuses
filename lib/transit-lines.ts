@@ -125,69 +125,69 @@ const athensStations: TransitStation[] = [
   // TRAM — T6: Syntagma ↔ Pikrodafni
   //         T7: Agia Triada (Piraeus) ↔ Asklipieio Voulas
   // =========================================================================
-// Syntagma → Pikrodafni (T6) & Agia Triada → Voula (T7)
-{ id: "tram-syntagma",         name: "Syntagma (Tram)",            nameEl: "Σύνταγμα (Τραμ)",           latitude: 37.9753,      longitude: 23.7353,      lineIds: ["t6","t7"] },
-{ id: "tram-zappeio",          name: "Zappeio",                     nameEl: "Ζάππειο",                    latitude: 37.9686,      longitude: 23.7379,      lineIds: ["t6","t7"] },
-{ id: "tram-leof-vouliagmenis",name: "Leoforos Vouliagmenis",       nameEl: "Λεωφ. Βουλιαγμένης",        latitude: 37.9667,      longitude: 23.7318,      lineIds: ["t6","t7"] },
-{ id: "tram-fix",              name: "Fix (Tram)",                  nameEl: "Φιξ (Τραμ)",                 latitude: 37.9646,      longitude: 23.7268,      lineIds: ["t6","t7"] },
-{ id: "tram-kasomouli",        name: "Kasomouli",                   nameEl: "Κασομούλη",                  latitude: 37.9604,      longitude: 23.7235,      lineIds: ["t6","t7"] },
-{ id: "tram-neos-kosmos-tram", name: "Neos Kosmos (Tram)",          nameEl: "Νέος Κόσμος (Τραμ)",         latitude: 37.9578,      longitude: 23.7281,      lineIds: ["t6","t7"] },
-{ id: "tram-baknana",          name: "Baknana",                     nameEl: "Μπακνανά",                   latitude: 37.9547,      longitude: 23.7225,      lineIds: ["t6","t7"] },
-{ id: "tram-aegeou",           name: "Aegeou",                      nameEl: "Αιγαίου",                    latitude: 37.9515,      longitude: 23.7170,      lineIds: ["t6","t7"] },
-{ id: "tram-ag-fotini",        name: "Agia Fotini",                 nameEl: "Αγία Φωτεινή",               latitude: 37.9500,      longitude: 23.7264,      lineIds: ["t6","t7"] },
-{ id: "tram-meg-alexandrou",   name: "Megalou Alexandrou",          nameEl: "Μεγάλου Αλεξάνδρου",          latitude: 37.9489,      longitude: 23.7233,      lineIds: ["t6","t7"] },
-{ id: "tram-ag-paraskevi-tram",name: "Agia Paraskevi (Tram)",       nameEl: "Αγία Παρασκευή (Τραμ)",       latitude: 37.9481,      longitude: 23.7199,      lineIds: ["t6","t7"] },
-{ id: "tram-medeas",           name: "Medeas-Mykalis",              nameEl: "Μηδείας-Μυκάλης",             latitude: 37.9467,      longitude: 23.7158,      lineIds: ["t6","t7"] },
-{ id: "tram-evangeliki",       name: "Evangeliki Scholi",           nameEl: "Ευαγγελική Σχολή",            latitude: 37.9450,      longitude: 23.7117,      lineIds: ["t6","t7"] },
-{ id: "tram-achilleos",        name: "Achilleos",                   nameEl: "Αχιλλέως",                   latitude: 37.9428,      longitude: 23.7072,      lineIds: ["t6","t7"] },
-{ id: "tram-amfitheas",        name: "Amfitheas",                   nameEl: "Αμφιθέας",                   latitude: 37.9403,      longitude: 23.7033,      lineIds: ["t6","t7"] },
-{ id: "tram-panagitsa",        name: "Panagitsa",                   nameEl: "Παναγίτσα",                  latitude: 37.9392,      longitude: 23.6992,      lineIds: ["t6","t7"] },
-{ id: "tram-mousson",          name: "Mousson",                     nameEl: "Μουσών",                     latitude: 37.9360,      longitude: 23.6950,      lineIds: ["t6","t7"] },
+  // Syntagma → Pikrodafni (T6) & Agia Triada → Voula (T7)
+  { id: "tram-syntagma", name: "Syntagma (Tram)", nameEl: "Σύνταγμα (Τραμ)", latitude: 37.9753, longitude: 23.7353, lineIds: ["t6", "t7"] },
+  { id: "tram-zappeio", name: "Zappeio", nameEl: "Ζάππειο", latitude: 37.9686, longitude: 23.7379, lineIds: ["t6", "t7"] },
+  { id: "tram-leof-vouliagmenis", name: "Leoforos Vouliagmenis", nameEl: "Λεωφ. Βουλιαγμένης", latitude: 37.9667, longitude: 23.7318, lineIds: ["t6", "t7"] },
+  { id: "tram-fix", name: "Fix (Tram)", nameEl: "Φιξ (Τραμ)", latitude: 37.9646, longitude: 23.7268, lineIds: ["t6", "t7"] },
+  { id: "tram-kasomouli", name: "Kasomouli", nameEl: "Κασομούλη", latitude: 37.9604, longitude: 23.7235, lineIds: ["t6", "t7"] },
+  { id: "tram-neos-kosmos-tram", name: "Neos Kosmos (Tram)", nameEl: "Νέος Κόσμος (Τραμ)", latitude: 37.9578, longitude: 23.7281, lineIds: ["t6", "t7"] },
+  { id: "tram-baknana", name: "Baknana", nameEl: "Μπακνανά", latitude: 37.9547, longitude: 23.7225, lineIds: ["t6", "t7"] },
+  { id: "tram-aegeou", name: "Aegeou", nameEl: "Αιγαίου", latitude: 37.9515, longitude: 23.7170, lineIds: ["t6", "t7"] },
+  { id: "tram-ag-fotini", name: "Agia Fotini", nameEl: "Αγία Φωτεινή", latitude: 37.9500, longitude: 23.7264, lineIds: ["t6", "t7"] },
+  { id: "tram-meg-alexandrou", name: "Megalou Alexandrou", nameEl: "Μεγάλου Αλεξάνδρου", latitude: 37.9489, longitude: 23.7233, lineIds: ["t6", "t7"] },
+  { id: "tram-ag-paraskevi-tram", name: "Agia Paraskevi (Tram)", nameEl: "Αγία Παρασκευή (Τραμ)", latitude: 37.9481, longitude: 23.7199, lineIds: ["t6", "t7"] },
+  { id: "tram-medeas", name: "Medeas-Mykalis", nameEl: "Μηδείας-Μυκάλης", latitude: 37.9467, longitude: 23.7158, lineIds: ["t6", "t7"] },
+  { id: "tram-evangeliki", name: "Evangeliki Scholi", nameEl: "Ευαγγελική Σχολή", latitude: 37.9450, longitude: 23.7117, lineIds: ["t6", "t7"] },
+  { id: "tram-achilleos", name: "Achilleos", nameEl: "Αχιλλέως", latitude: 37.9428, longitude: 23.7072, lineIds: ["t6", "t7"] },
+  { id: "tram-amfitheas", name: "Amfitheas", nameEl: "Αμφιθέας", latitude: 37.9403, longitude: 23.7033, lineIds: ["t6", "t7"] },
+  { id: "tram-panagitsa", name: "Panagitsa", nameEl: "Παναγίτσα", latitude: 37.9392, longitude: 23.6992, lineIds: ["t6", "t7"] },
+  { id: "tram-mousson", name: "Mousson", nameEl: "Μουσών", latitude: 37.9360, longitude: 23.6950, lineIds: ["t6", "t7"] },
 
-// **Shared coastal stops**
-{ id: "tram-edem",             name: "Edem",                        nameEl: "Εδέμ",                        latitude: 37.91856,     longitude: 23.70075,     lineIds: ["t6","t7"], isInterchange: true }, // :contentReference[oaicite:2]{index=2}
-{ id: "tram-pikrodafni",       name: "Pikrodafni",                  nameEl: "Πικροδάφνη",                  latitude: 37.91577,     longitude: 23.705615,    lineIds: ["t6","t7"], isInterchange: true }, // :contentReference[oaicite:3]{index=3}
+  // **Shared coastal stops**
+  { id: "tram-edem", name: "Edem", nameEl: "Εδέμ", latitude: 37.91856, longitude: 23.70075, lineIds: ["t6", "t7"], isInterchange: true }, // :contentReference[oaicite:2]{index=2}
+  { id: "tram-pikrodafni", name: "Pikrodafni", nameEl: "Πικροδάφνη", latitude: 37.91577, longitude: 23.705615, lineIds: ["t6", "t7"], isInterchange: true }, // :contentReference[oaicite:3]{index=3}
 
-// **Piraeus branch (T7 Piraeus Loop)**
-{ id: "tram-ag-triada",        name: "Agia Triada",                 nameEl: "Αγία Τριάδα",                latitude: 37.9475,      longitude: 23.6450,      lineIds: ["t7"] },
-{ id: "tram-ippodameias",      name: "Plateia Ippodameias",         nameEl: "Πλ. Ιπποδαμείας",             latitude: 37.9403,      longitude: 23.6486,      lineIds: ["t7"] },
-{ id: "tram-34-syntagma",      name: "34 Synt. Pezikou",            nameEl: "34ου Συντ. Πεζικού",         latitude: 37.9367,      longitude: 23.6511,      lineIds: ["t7"] },
-{ id: "tram-androutsou",       name: "Androutsou",                  nameEl: "Ανδρούτσου",                  latitude: 37.9358,      longitude: 23.6503,      lineIds: ["t7"] },
-{ id: "tram-omiridou",         name: "Omiridou Skylitsi",           nameEl: "Ομ. Σκυλίτση",               latitude: 37.9342,      longitude: 23.6531,      lineIds: ["t7"] },
-{ id: "tram-sef",              name: "SEF",                         nameEl: "ΣΕΦ",                         latitude: 37.9410,      longitude: 23.6670,      lineIds: ["t7"] },
-{ id: "tram-neo-faliro",       name: "Neo Faliro (Tram)",           nameEl: "Νέο Φάληρο (Τραμ)",          latitude: 37.9442,      longitude: 23.6655,      lineIds: ["t7"] },
-{ id: "tram-mikras-asias",     name: "Mikras Asias",                nameEl: "Μικράς Ασίας",                latitude: 37.9356,      longitude: 23.6481,      lineIds: ["t7"] },
-{ id: "tram-dimarcheio",       name: "Dimarcheio (Piraeus)",        nameEl: "Δημαρχείο (Πειραιάς)",        latitude: 37.9422,      longitude: 23.6461,      lineIds: ["t7"] },
+  // **Piraeus branch (T7 Piraeus Loop)**
+  { id: "tram-ag-triada", name: "Agia Triada", nameEl: "Αγία Τριάδα", latitude: 37.9475, longitude: 23.6450, lineIds: ["t7"] },
+  { id: "tram-ippodameias", name: "Plateia Ippodameias", nameEl: "Πλ. Ιπποδαμείας", latitude: 37.9403, longitude: 23.6486, lineIds: ["t7"] },
+  { id: "tram-34-syntagma", name: "34 Synt. Pezikou", nameEl: "34ου Συντ. Πεζικού", latitude: 37.9367, longitude: 23.6511, lineIds: ["t7"] },
+  { id: "tram-androutsou", name: "Androutsou", nameEl: "Ανδρούτσου", latitude: 37.9358, longitude: 23.6503, lineIds: ["t7"] },
+  { id: "tram-omiridou", name: "Omiridou Skylitsi", nameEl: "Ομ. Σκυλίτση", latitude: 37.9342, longitude: 23.6531, lineIds: ["t7"] },
+  { id: "tram-sef", name: "SEF", nameEl: "ΣΕΦ", latitude: 37.9410, longitude: 23.6670, lineIds: ["t7"] },
+  { id: "tram-neo-faliro", name: "Neo Faliro (Tram)", nameEl: "Νέο Φάληρο (Τραμ)", latitude: 37.9442, longitude: 23.6655, lineIds: ["t7"] },
+  { id: "tram-mikras-asias", name: "Mikras Asias", nameEl: "Μικράς Ασίας", latitude: 37.9356, longitude: 23.6481, lineIds: ["t7"] },
+  { id: "tram-dimarcheio", name: "Dimarcheio (Piraeus)", nameEl: "Δημαρχείο (Πειραιάς)", latitude: 37.9422, longitude: 23.6461, lineIds: ["t7"] },
 
-// **Coastal stops (Piraeus to Edem – T7)**
-{ id: "tram-moschato-tram",    name: "Moschato (Tram)",             nameEl: "Μοσχάτο (Τραμ)",             latitude: 37.9450,      longitude: 23.6690,      lineIds: ["t7"] },
-{ id: "tram-kallithea-tram",   name: "Kallithea (Tram)",            nameEl: "Καλλιθέα (Τραμ)",           latitude: 37.9440,      longitude: 23.6710,      lineIds: ["t7"] },
-{ id: "tram-tzitzifies",       name: "Tzitzifies",                  nameEl: "Τζιτζιφιές",                 latitude: 37.9420,      longitude: 23.6730,      lineIds: ["t7"] },
-{ id: "tram-delta-falirou",    name: "Delta Falirou",               nameEl: "Δέλτα Φαλήρου",              latitude: 37.94040,     longitude: 23.67500,     lineIds: ["t7"] },
-{ id: "tram-agia-skepi",       name: "Agia Skepi",                  nameEl: "Αγία Σκέπη",                 latitude: 37.9380,      longitude: 23.6770,      lineIds: ["t7"] },
-{ id: "tram-trocadero",        name: "Trocadero",                   nameEl: "Τροκαντερό",                 latitude: 37.9353,      longitude: 23.6790,      lineIds: ["t7"] },
-{ id: "tram-parko-flisvou",    name: "Parko Flisvou",               nameEl: "Πάρκο Φλοίσβου",             latitude: 37.92782,     longitude: 23.68838,     lineIds: ["t7"] },
-{ id: "tram-flisvos",          name: "Flisvos",                     nameEl: "Φλοίσβος",                   latitude: 37.92336,     longitude: 23.69289,     lineIds: ["t7"] },
+  // **Coastal stops (Piraeus to Edem – T7)**
+  { id: "tram-moschato-tram", name: "Moschato (Tram)", nameEl: "Μοσχάτο (Τραμ)", latitude: 37.9450, longitude: 23.6690, lineIds: ["t7"] },
+  { id: "tram-kallithea-tram", name: "Kallithea (Tram)", nameEl: "Καλλιθέα (Τραμ)", latitude: 37.9440, longitude: 23.6710, lineIds: ["t7"] },
+  { id: "tram-tzitzifies", name: "Tzitzifies", nameEl: "Τζιτζιφιές", latitude: 37.9420, longitude: 23.6730, lineIds: ["t7"] },
+  { id: "tram-delta-falirou", name: "Delta Falirou", nameEl: "Δέλτα Φαλήρου", latitude: 37.94040, longitude: 23.67500, lineIds: ["t7"] },
+  { id: "tram-agia-skepi", name: "Agia Skepi", nameEl: "Αγία Σκέπη", latitude: 37.9380, longitude: 23.6770, lineIds: ["t7"] },
+  { id: "tram-trocadero", name: "Trocadero", nameEl: "Τροκαντερό", latitude: 37.9353, longitude: 23.6790, lineIds: ["t7"] },
+  { id: "tram-parko-flisvou", name: "Parko Flisvou", nameEl: "Πάρκο Φλοίσβου", latitude: 37.92782, longitude: 23.68838, lineIds: ["t7"] },
+  { id: "tram-flisvos", name: "Flisvos", nameEl: "Φλοίσβος", latitude: 37.92336, longitude: 23.69289, lineIds: ["t7"] },
 
-// **Glyfada branch (T7 coastal)**
-{ id: "tram-marina-alimou",    name: "Marina Alimou",               nameEl: "Μαρίνα Αλίμου",             latitude: 37.91312,     longitude: 23.708605,    lineIds: ["t7"] },
-{ id: "tram-kalamaki",         name: "Kalamaki",                    nameEl: "Καλαμάκι",                   latitude: 37.90956,     longitude: 23.713045,    lineIds: ["t7"] },
-{ id: "tram-zefyros",          name: "Zefyros",                     nameEl: "Ζέφυρος",                    latitude: 37.906535,    longitude: 23.71689,     lineIds: ["t7"] },
-{ id: "tram-loutra-alimou",    name: "Loutra Alimou",               nameEl: "Λουτρά Αλίμου",              latitude: 37.90236,     longitude: 23.71953,     lineIds: ["t7"] },
-{ id: "tram-elliniko-tram",    name: "Elliniko (Tram)",             nameEl: "Ελληνικό (Τραμ)",           latitude: 37.898,       longitude: 23.722,       lineIds: ["t7"] },
-{ id: "tram-1st-ag-kosma",     name: "1st Ag. Kosma",               nameEl: "1η Αγ. Κοσμά",              latitude: 37.892,       longitude: 23.725,       lineIds: ["t7"] },
-{ id: "tram-2nd-ag-kosma",     name: "2nd Ag. Kosma",               nameEl: "2η Αγ. Κοσμά",              latitude: 37.889,       longitude: 23.727,       lineIds: ["t7"] },
-{ id: "tram-ag-alexandros",    name: "Agios Alexandros",            nameEl: "Άγιος Αλέξανδρος",           latitude: 37.8851,      longitude: 23.7269,      lineIds: ["t7"] },
-{ id: "tram-ellinon-olymp",    name: "Ellinon Olympionikon",        nameEl: "Ελλήνων Ολυμπιονικών",      latitude: 37.881,       longitude: 23.7296,      lineIds: ["t7"] },
-{ id: "tram-kentro-istio",     name: "Kentro Istioploias",          nameEl: "Κέντρο Ιστιοπλοίας",         latitude: 37.87576,     longitude: 23.731905,    lineIds: ["t7"] },
-{ id: "tram-plateia-vergoti",  name: "Plateia Vergoti",             nameEl: "Πλατεία Βεργωτή",            latitude: 37.871556,    longitude: 23.735055,    lineIds: ["t7"] },
-{ id: "tram-glyfada",          name: "Paralia Glyfadas",            nameEl: "Παραλία Γλυφάδας",          latitude: 37.86764,     longitude: 23.738585,    lineIds: ["t7"] },
-{ id: "tram-paleo-dimarhio",    name: "Paleo Dimarhio",             nameEl: "Παλαιό Δημαρχείο",          latitude: 37.864545,    longitude: 23.74337,     lineIds: ["t7"] },
-{ id: "tram-plateia-katraki",  name: "Plateia Katraki",            nameEl: "Πλατεία Βάσω Κατράκη",      latitude: 37.86341,     longitude: 23.74732,     lineIds: ["t7"] },
-{ id: "tram-agg-metaxa",       name: "Angelou Metaxa",             nameEl: "Αγγέλου Μεταξά",            latitude: 37.86277,     longitude: 23.751175,    lineIds: ["t7"] },
-{ id: "tram-plateia-esperidon",name: "Plateia Esperidon",          nameEl: "Πλατεία Εσπερίδων",         latitude: 37.859,       longitude: 23.753,       lineIds: ["t7"] },
-{ id: "tram-kolymvitirio",     name: "Kolymvitirio",               nameEl: "Κολυμβητήριο",              latitude: 37.855,       longitude: 23.755,       lineIds: ["t7"] },
-{ id: "tram-voula",            name: "Asklipiio Voulas",           nameEl: "Ασκληπιείο Βούλας",         latitude: 37.8494,      longitude: 23.7525,      lineIds: ["t7"] },
+  // **Glyfada branch (T7 coastal)**
+  { id: "tram-marina-alimou", name: "Marina Alimou", nameEl: "Μαρίνα Αλίμου", latitude: 37.91312, longitude: 23.708605, lineIds: ["t7"] },
+  { id: "tram-kalamaki", name: "Kalamaki", nameEl: "Καλαμάκι", latitude: 37.90956, longitude: 23.713045, lineIds: ["t7"] },
+  { id: "tram-zefyros", name: "Zefyros", nameEl: "Ζέφυρος", latitude: 37.906535, longitude: 23.71689, lineIds: ["t7"] },
+  { id: "tram-loutra-alimou", name: "Loutra Alimou", nameEl: "Λουτρά Αλίμου", latitude: 37.90236, longitude: 23.71953, lineIds: ["t7"] },
+  { id: "tram-elliniko-tram", name: "Elliniko (Tram)", nameEl: "Ελληνικό (Τραμ)", latitude: 37.898, longitude: 23.722, lineIds: ["t7"] },
+  { id: "tram-1st-ag-kosma", name: "1st Ag. Kosma", nameEl: "1η Αγ. Κοσμά", latitude: 37.892, longitude: 23.725, lineIds: ["t7"] },
+  { id: "tram-2nd-ag-kosma", name: "2nd Ag. Kosma", nameEl: "2η Αγ. Κοσμά", latitude: 37.889, longitude: 23.727, lineIds: ["t7"] },
+  { id: "tram-ag-alexandros", name: "Agios Alexandros", nameEl: "Άγιος Αλέξανδρος", latitude: 37.8851, longitude: 23.7269, lineIds: ["t7"] },
+  { id: "tram-ellinon-olymp", name: "Ellinon Olympionikon", nameEl: "Ελλήνων Ολυμπιονικών", latitude: 37.881, longitude: 23.7296, lineIds: ["t7"] },
+  { id: "tram-kentro-istio", name: "Kentro Istioploias", nameEl: "Κέντρο Ιστιοπλοίας", latitude: 37.87576, longitude: 23.731905, lineIds: ["t7"] },
+  { id: "tram-plateia-vergoti", name: "Plateia Vergoti", nameEl: "Πλατεία Βεργωτή", latitude: 37.871556, longitude: 23.735055, lineIds: ["t7"] },
+  { id: "tram-glyfada", name: "Paralia Glyfadas", nameEl: "Παραλία Γλυφάδας", latitude: 37.86764, longitude: 23.738585, lineIds: ["t7"] },
+  { id: "tram-paleo-dimarhio", name: "Paleo Dimarhio", nameEl: "Παλαιό Δημαρχείο", latitude: 37.864545, longitude: 23.74337, lineIds: ["t7"] },
+  { id: "tram-plateia-katraki", name: "Plateia Katraki", nameEl: "Πλατεία Βάσω Κατράκη", latitude: 37.86341, longitude: 23.74732, lineIds: ["t7"] },
+  { id: "tram-agg-metaxa", name: "Angelou Metaxa", nameEl: "Αγγέλου Μεταξά", latitude: 37.86277, longitude: 23.751175, lineIds: ["t7"] },
+  { id: "tram-plateia-esperidon", name: "Plateia Esperidon", nameEl: "Πλατεία Εσπερίδων", latitude: 37.859, longitude: 23.753, lineIds: ["t7"] },
+  { id: "tram-kolymvitirio", name: "Kolymvitirio", nameEl: "Κολυμβητήριο", latitude: 37.855, longitude: 23.755, lineIds: ["t7"] },
+  { id: "tram-voula", name: "Asklipiio Voulas", nameEl: "Ασκληπιείο Βούλας", latitude: 37.8494, longitude: 23.7525, lineIds: ["t7"] },
 
 ];
 
@@ -200,31 +200,32 @@ const athensLines: TransitLine[] = [
     type: "metro",
     coordinates: [
       [23.6436, 37.9480], // Piraeus
-      [23.6653, 37.9450], // Faliro
-      [23.6805, 37.9553], // Moschato
-      [23.6970, 37.9604], // Kallithea
-      [23.7033, 37.9624], // Tavros
-      [23.7091, 37.9685], // Petralona
-      [23.7201, 37.9768], // Thissio
+      [23.6656, 37.9453], // Faliro
+      [23.6809, 37.9556], // Moschato
+      [23.6976, 37.9607], // Kallithea
+      [23.7039, 37.9629], // Tavros
+      [23.7095, 37.9688], // Petralona
+      [23.7203, 37.9769], // Thissio
       [23.7254, 37.9760], // Monastiraki
       [23.7280, 37.9840], // Omonia
-      [23.7303, 37.9931], // Victoria
+      [23.7305, 37.9932], // Victoria
       [23.7228, 37.9994], // Attiki
-      [23.7275, 38.0069], // Ag. Nikolaos
-      [23.7286, 38.0114], // Kato Patissia
-      [23.7310, 38.0170], // Ag. Eleftherios
-      [23.7350, 38.0209], // Ano Patissia
-      [23.7447, 38.0328], // Perissos
-      [23.7500, 38.0370], // Pefkakia
-      [23.7547, 38.0414], // Nea Ionia
-      [23.7661, 38.0461], // Iraklio
-      [23.7833, 38.0433], // Irini
-      [23.7929, 38.0451], // Neratziotissa
-      [23.8020, 38.0560], // Maroussi
-      [23.8040, 38.0660], // KAT
-      [23.8082, 38.0732], // Kifissia
+      [23.7276, 38.0068], // Agios Nikolaos
+      [23.7287, 38.0115], // Kato Patissia
+      [23.7311, 38.0172], // Agios Eleftherios
+      [23.7351, 38.0210], // Ano Patissia
+      [23.7448, 38.0329], // Perissos
+      [23.7501, 38.0372], // Pefkakia
+      [23.7549, 38.0416], // Nea Ionia
+      [23.7663, 38.0463], // Iraklio
+      [23.7835, 38.0435], // Irini
+      [23.7929, 38.0452], // Neratziotissa
+      [23.8022, 38.0562], // Maroussi
+      [23.8042, 38.0662], // KAT
+      [23.8083, 38.0733], // Kifissia
     ],
-  },
+  }
+  ,
   {
     id: "line2",
     name: "Line 2 (Red)",
@@ -232,28 +233,29 @@ const athensLines: TransitLine[] = [
     color: "#DA291C",
     type: "metro",
     coordinates: [
-      [23.6917, 38.0169], // Anthoupoli
-      [23.6957, 38.0130], // Peristeri
-      [23.7000, 38.0072], // Ag. Antonios
-      [23.7136, 38.0028], // Sepolia
+      [23.6919, 38.0168], // Anthoupoli
+      [23.6958, 38.0131], // Peristeri
+      [23.7002, 38.0073], // Agios Antonios
+      [23.7137, 38.0029], // Sepolia
       [23.7228, 37.9994], // Attiki
-      [23.7206, 37.9923], // Larissa Station
-      [23.7214, 37.9858], // Metaxourgio
+      [23.7207, 37.9924], // Larissa Station
+      [23.7215, 37.9859], // Metaxourgio
       [23.7280, 37.9840], // Omonia
-      [23.7331, 37.9803], // Panepistimio
+      [23.7332, 37.9804], // Panepistimio
       [23.7353, 37.9753], // Syntagma
-      [23.7294, 37.9687], // Akropoli
-      [23.7268, 37.9646], // Syngrou-Fix
+      [23.7295, 37.9687], // Akropoli
+      [23.7268, 37.9646], // Syngrou–Fix
       [23.7281, 37.9578], // Neos Kosmos
-      [23.7342, 37.9565], // Ag. Ioannis
-      [23.7372, 37.9496], // Dafni
-      [23.7407, 37.9403], // Ag. Dimitrios
-      [23.7445, 37.9296], // Ilioupoli
-      [23.7445, 37.9181], // Alimos
-      [23.7459, 37.9031], // Argyroupoli
-      [23.7472, 37.8926], // Elliniko
+      [23.7343, 37.9566], // Agios Ioannis
+      [23.7373, 37.9497], // Dafni
+      [23.7408, 37.9404], // Agios Dimitrios
+      [23.7446, 37.9297], // Ilioupoli
+      [23.7446, 37.9182], // Alimos
+      [23.7460, 37.9032], // Argyroupoli
+      [23.7473, 37.8927], // Elliniko
     ],
-  },
+  }
+  ,
   {
     id: "line3",
     name: "Line 3 (Blue)",
@@ -263,33 +265,36 @@ const athensLines: TransitLine[] = [
     coordinates: [
       [23.6476, 37.9429], // Dimotiko Theatro
       [23.6436, 37.9480], // Piraeus
-      [23.6398, 37.9595], // Maniatika
-      [23.6473, 37.9658], // Nikaia
-      [23.6504, 37.9771], // Korydallos
-      [23.6593, 37.9900], // Ag. Varvara
-      [23.6679, 37.9969], // Ag. Marina
-      [23.6819, 37.9920], // Egaleo
-      [23.6933, 37.9877], // Eleonas
-      [23.7114, 37.9786], // Kerameikos
+      [23.6399, 37.9596], // Maniatika
+      [23.6474, 37.9659], // Nikaia
+      [23.6506, 37.9772], // Korydallos
+      [23.6595, 37.9901], // Agia Varvara
+      [23.6681, 37.9970], // Agia Marina
+      [23.6821, 37.9921], // Egaleo
+      [23.6935, 37.9878], // Eleonas
+      [23.7115, 37.9787], // Kerameikos
       [23.7254, 37.9760], // Monastiraki
       [23.7353, 37.9753], // Syntagma
       [23.7469, 37.9764], // Evangelismos
-      [23.7538, 37.9787], // Megaro Moussikis
-      [23.7601, 37.9909], // Ambelokipi
-      [23.7667, 37.9928], // Panormou
-      [23.7764, 37.9931], // Katehaki
-      [23.7856, 38.0000], // Ethniki Amyna
-      [23.8122, 38.0017], // Holargos
-      [23.8053, 38.0093], // Nomismatokopio
-      [23.8169, 38.0125], // Ag. Paraskevi
-      [23.8208, 38.0217], // Halandri
-      [23.8238, 38.0232], // Douk. Plakentias
-      [23.8697, 38.0053], // Pallini
-      [23.8700, 37.9842], // Paiania-Kantza
-      [23.8958, 37.9128], // Koropi
-      [23.9484, 37.9365], // Airport
+      [23.7539, 37.9788], // Megaro Moussikis
+      [23.7602, 37.9910], // Ambelokipi
+      [23.7668, 37.9929], // Panormou
+      [23.7766, 37.9932], // Katehaki
+      [23.7857, 38.0001], // Ethniki Amyna
+      [23.7927, 38.0066], // Holargos
+      [23.8054, 38.0094], // Nomismatokopio
+      [23.8169, 38.0126], // Agia Paraskevi
+      [23.8209, 38.0218], // Halandri
+      [23.8239, 38.0233], // Doukissis Plakentias
+
+      // Airport branch
+      [23.8696, 38.0054], // Pallini
+      [23.8789, 37.9837], // Paiania–Kantza
+      [23.9122, 37.9130], // Koropi
+      [23.9369, 37.9364], // Airport (Eleftherios Venizelos)
     ],
-  },
+  }
+  ,
   {
     id: "t6",
     name: "Tram T6 (Syntagma - Pikrodafni)",
@@ -336,7 +341,7 @@ const athensLines: TransitLine[] = [
       [23.6531, 37.9342], // Omiridou Skylitsi
       [23.6670, 37.9410], // SEF
       [23.6655, 37.9442], // Neo Faliro (Close Loop)
-      
+
       // Coast
       [23.6690, 37.9450], // Moschato
       [23.6710, 37.9440], // Kallithea

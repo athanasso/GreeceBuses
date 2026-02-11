@@ -38,84 +38,82 @@ const athensStations: TransitStation[] = [
   // LINE 1 (Green) - Piraeus to Kifissia — ISAP
   // =========================================================================
   { id: "l1-piraeus", name: "Piraeus", nameEl: "Πειραιάς", latitude: 37.9480, longitude: 23.6436, lineIds: ["line1", "line3"], isInterchange: true },
-  { id: "l1-faliro", name: "Faliro", nameEl: "Φάληρο", latitude: 37.9450, longitude: 23.6653, lineIds: ["line1"] },
-  { id: "l1-moschato", name: "Moschato", nameEl: "Μοσχάτο", latitude: 37.9553, longitude: 23.6805, lineIds: ["line1"] },
-  { id: "l1-kallithea", name: "Kallithea", nameEl: "Καλλιθέα", latitude: 37.9604, longitude: 23.6970, lineIds: ["line1"] },
-  { id: "l1-tavros", name: "Tavros", nameEl: "Ταύρος", latitude: 37.9624, longitude: 23.7033, lineIds: ["line1"] },
-  { id: "l1-petralona", name: "Petralona", nameEl: "Πετράλωνα", latitude: 37.9685, longitude: 23.7091, lineIds: ["line1"] },
-  { id: "l1-thissio", name: "Thissio", nameEl: "Θησείο", latitude: 37.9768, longitude: 23.7201, lineIds: ["line1"] },
+  { id: "l1-faliro", name: "Faliro", nameEl: "Φάληρο", latitude: 37.9453, longitude: 23.6656, lineIds: ["line1"] },
+  { id: "l1-moschato", name: "Moschato", nameEl: "Μοσχάτο", latitude: 37.9556, longitude: 23.6809, lineIds: ["line1"] },
+  { id: "l1-kallithea", name: "Kallithea", nameEl: "Καλλιθέα", latitude: 37.9607, longitude: 23.6976, lineIds: ["line1"] },
+  { id: "l1-tavros", name: "Tavros", nameEl: "Ταύρος", latitude: 37.9629, longitude: 23.7039, lineIds: ["line1"] },
+  { id: "l1-petralona", name: "Petralona", nameEl: "Πετράλωνα", latitude: 37.9688, longitude: 23.7095, lineIds: ["line1"] },
+  { id: "l1-thissio", name: "Thissio", nameEl: "Θησείο", latitude: 37.9769, longitude: 23.7203, lineIds: ["line1"] },
   { id: "l1-monastiraki", name: "Monastiraki", nameEl: "Μοναστηράκι", latitude: 37.9760, longitude: 23.7254, lineIds: ["line1", "line3"], isInterchange: true },
   { id: "l1-omonia", name: "Omonia", nameEl: "Ομόνοια", latitude: 37.9840, longitude: 23.7280, lineIds: ["line1", "line2"], isInterchange: true },
-  { id: "l1-victoria", name: "Victoria", nameEl: "Βικτώρια", latitude: 37.9931, longitude: 23.7303, lineIds: ["line1"] },
+  { id: "l1-victoria", name: "Victoria", nameEl: "Βικτώρια", latitude: 37.9932, longitude: 23.7305, lineIds: ["line1"] },
   { id: "l1-attiki", name: "Attiki", nameEl: "Αττική", latitude: 37.9994, longitude: 23.7228, lineIds: ["line1", "line2"], isInterchange: true },
-  { id: "l1-ag-nikolaos", name: "Agios Nikolaos", nameEl: "Άγιος Νικόλαος", latitude: 38.0069, longitude: 23.7275, lineIds: ["line1"] },
-  { id: "l1-kato-patissia", name: "Kato Patissia", nameEl: "Κάτω Πατήσια", latitude: 38.0114, longitude: 23.7286, lineIds: ["line1"] },
-  { id: "l1-ag-eleftherios", name: "Agios Eleftherios", nameEl: "Άγιος Ελευθέριος", latitude: 38.0170, longitude: 23.7310, lineIds: ["line1"] },
-  { id: "l1-ano-patissia", name: "Ano Patissia", nameEl: "Άνω Πατήσια", latitude: 38.0209, longitude: 23.7350, lineIds: ["line1"] },
-  { id: "l1-perissos", name: "Perissos", nameEl: "Περισσός", latitude: 38.0328, longitude: 23.7447, lineIds: ["line1"] },
-  { id: "l1-pefkakia", name: "Pefkakia", nameEl: "Πευκάκια", latitude: 38.0370, longitude: 23.7500, lineIds: ["line1"] },
-  { id: "l1-nea-ionia", name: "Nea Ionia", nameEl: "Νέα Ιωνία", latitude: 38.0414, longitude: 23.7547, lineIds: ["line1"] },
-  { id: "l1-iraklio", name: "Iraklio", nameEl: "Ηράκλειο", latitude: 38.0461, longitude: 23.7661, lineIds: ["line1"] },
-  { id: "l1-irini", name: "Irini", nameEl: "Ειρήνη", latitude: 38.0433, longitude: 23.7833, lineIds: ["line1", "suburban"], isInterchange: true },
-  { id: "l1-neratziotissa", name: "Neratziotissa", nameEl: "Νερατζιώτισσα", latitude: 38.0451, longitude: 23.7929, lineIds: ["line1", "suburban"], isInterchange: true },
-  { id: "l1-maroussi", name: "Maroussi", nameEl: "Μαρούσι", latitude: 38.0560, longitude: 23.8020, lineIds: ["line1"] },
-  { id: "l1-kat", name: "KAT", nameEl: "ΚΑΤ", latitude: 38.0660, longitude: 23.8040, lineIds: ["line1"] },
-  { id: "l1-kifissia", name: "Kifissia", nameEl: "Κηφισιά", latitude: 38.0732, longitude: 23.8082, lineIds: ["line1"] },
+  { id: "l1-ag-nikolaos", name: "Agios Nikolaos", nameEl: "Άγιος Νικόλαος", latitude: 38.0068, longitude: 23.7276, lineIds: ["line1"] },
+  { id: "l1-kato-patissia", name: "Kato Patissia", nameEl: "Κάτω Πατήσια", latitude: 38.0115, longitude: 23.7287, lineIds: ["line1"] },
+  { id: "l1-ag-eleftherios", name: "Agios Eleftherios", nameEl: "Άγιος Ελευθέριος", latitude: 38.0172, longitude: 23.7311, lineIds: ["line1"] },
+  { id: "l1-ano-patissia", name: "Ano Patissia", nameEl: "Άνω Πατήσια", latitude: 38.0210, longitude: 23.7351, lineIds: ["line1"] },
+  { id: "l1-perissos", name: "Perissos", nameEl: "Περισσός", latitude: 38.0329, longitude: 23.7448, lineIds: ["line1"] },
+  { id: "l1-pefkakia", name: "Pefkakia", nameEl: "Πευκάκια", latitude: 38.0372, longitude: 23.7501, lineIds: ["line1"] },
+  { id: "l1-nea-ionia", name: "Nea Ionia", nameEl: "Νέα Ιωνία", latitude: 38.0416, longitude: 23.7549, lineIds: ["line1"] },
+  { id: "l1-iraklio", name: "Iraklio", nameEl: "Ηράκλειο", latitude: 38.0463, longitude: 23.7663, lineIds: ["line1"] },
+  { id: "l1-irini", name: "Irini", nameEl: "Ειρήνη", latitude: 38.0435, longitude: 23.7835, lineIds: ["line1", "suburban"], isInterchange: true },
+  { id: "l1-neratziotissa", name: "Neratziotissa", nameEl: "Νερατζιώτισσα", latitude: 38.0452, longitude: 23.7929, lineIds: ["line1", "suburban"], isInterchange: true },
+  { id: "l1-maroussi", name: "Maroussi", nameEl: "Μαρούσι", latitude: 38.0562, longitude: 23.8022, lineIds: ["line1"] },
+  { id: "l1-kat", name: "KAT", nameEl: "ΚΑΤ", latitude: 38.0662, longitude: 23.8042, lineIds: ["line1"] },
+  { id: "l1-kifissia", name: "Kifissia", nameEl: "Κηφισιά", latitude: 38.0733, longitude: 23.8083, lineIds: ["line1"] },
 
   // =========================================================================
   // LINE 2 (Red) - Anthoupoli to Elliniko
   // =========================================================================
-  { id: "l2-anthoupoli", name: "Anthoupoli", nameEl: "Ανθούπολη", latitude: 38.0169, longitude: 23.6917, lineIds: ["line2"] },
-  { id: "l2-peristeri", name: "Peristeri", nameEl: "Περιστέρι", latitude: 38.0130, longitude: 23.6957, lineIds: ["line2"] },
-  { id: "l2-ag-antonios", name: "Agios Antonios", nameEl: "Άγιος Αντώνιος", latitude: 38.0072, longitude: 23.7000, lineIds: ["line2"] },
-  { id: "l2-sepolia", name: "Sepolia", nameEl: "Σεπόλια", latitude: 38.0028, longitude: 23.7136, lineIds: ["line2"] },
-  // Attiki is interchange with Line 1 — already defined above
-  // Omonia is interchange with Line 1 — already defined above
-  { id: "l2-larissa", name: "Larissa Station", nameEl: "Σταθμός Λαρίσης", latitude: 37.9923, longitude: 23.7206, lineIds: ["line2"] },
-  { id: "l2-metaxourgio", name: "Metaxourgio", nameEl: "Μεταξουργείο", latitude: 37.9858, longitude: 23.7214, lineIds: ["line2"] },
-  { id: "l2-panepistimio", name: "Panepistimio", nameEl: "Πανεπιστήμιο", latitude: 37.9803, longitude: 23.7331, lineIds: ["line2"] },
+  { id: "l2-anthoupoli", name: "Anthoupoli", nameEl: "Ανθούπολη", latitude: 38.0168, longitude: 23.6919, lineIds: ["line2"] },
+  { id: "l2-peristeri", name: "Peristeri", nameEl: "Περιστέρι", latitude: 38.0131, longitude: 23.6958, lineIds: ["line2"] },
+  { id: "l2-ag-antonios", name: "Agios Antonios", nameEl: "Άγιος Αντώνιος", latitude: 38.0073, longitude: 23.7002, lineIds: ["line2"] },
+  { id: "l2-sepolia", name: "Sepolia", nameEl: "Σεπόλια", latitude: 38.0029, longitude: 23.7137, lineIds: ["line2"] },
+  // Attiki is interchange with Line 1 — updated above
+  // Omonia is interchange with Line 1 — updated above
+  { id: "l2-larissa", name: "Larissa Station", nameEl: "Σταθμός Λαρίσης", latitude: 37.9924, longitude: 23.7207, lineIds: ["line2"] },
+  { id: "l2-metaxourgio", name: "Metaxourgio", nameEl: "Μεταξουργείο", latitude: 37.9859, longitude: 23.7215, lineIds: ["line2"] },
+  { id: "l2-panepistimio", name: "Panepistimio", nameEl: "Πανεπιστήμιο", latitude: 37.9804, longitude: 23.7332, lineIds: ["line2"] },
   { id: "l2-syntagma", name: "Syntagma", nameEl: "Σύνταγμα", latitude: 37.9753, longitude: 23.7353, lineIds: ["line2", "line3"], isInterchange: true },
-  { id: "l2-akropoli", name: "Akropoli", nameEl: "Ακρόπολη", latitude: 37.9687, longitude: 23.7294, lineIds: ["line2"] },
+  { id: "l2-akropoli", name: "Akropoli", nameEl: "Ακρόπολη", latitude: 37.9687, longitude: 23.7295, lineIds: ["line2"] },
   { id: "l2-syngrou-fix", name: "Syngrou-Fix", nameEl: "Συγγρού-Φιξ", latitude: 37.9646, longitude: 23.7268, lineIds: ["line2"] },
   { id: "l2-neos-kosmos", name: "Neos Kosmos", nameEl: "Νέος Κόσμος", latitude: 37.9578, longitude: 23.7281, lineIds: ["line2"] },
-  { id: "l2-ag-ioannis", name: "Agios Ioannis", nameEl: "Άγιος Ιωάννης", latitude: 37.9565, longitude: 23.7342, lineIds: ["line2"] },
-  { id: "l2-dafni", name: "Dafni", nameEl: "Δάφνη", latitude: 37.9496, longitude: 23.7372, lineIds: ["line2"] },
-  { id: "l2-ag-dimitrios", name: "Agios Dimitrios", nameEl: "Άγιος Δημήτριος", latitude: 37.9403, longitude: 23.7407, lineIds: ["line2"] },
-  { id: "l2-ilioupoli", name: "Ilioupoli", nameEl: "Ηλιούπολη", latitude: 37.9296, longitude: 23.7445, lineIds: ["line2"] },
-  { id: "l2-alimos", name: "Alimos", nameEl: "Άλιμος", latitude: 37.9181, longitude: 23.7445, lineIds: ["line2"] },
-  { id: "l2-argyroupoli", name: "Argyroupoli", nameEl: "Αργυρούπολη", latitude: 37.9031, longitude: 23.7459, lineIds: ["line2"] },
-  { id: "l2-elliniko", name: "Elliniko", nameEl: "Ελληνικό", latitude: 37.8926, longitude: 23.7472, lineIds: ["line2"] },
+  { id: "l2-ag-ioannis", name: "Agios Ioannis", nameEl: "Άγιος Ιωάννης", latitude: 37.9566, longitude: 23.7343, lineIds: ["line2"] },
+  { id: "l2-dafni", name: "Dafni", nameEl: "Δάφνη", latitude: 37.9497, longitude: 23.7373, lineIds: ["line2"] },
+  { id: "l2-ag-dimitrios", name: "Agios Dimitrios", nameEl: "Άγιος Δημήτριος", latitude: 37.9404, longitude: 23.7408, lineIds: ["line2"] },
+  { id: "l2-ilioupoli", name: "Ilioupoli", nameEl: "Ηλιούπολη", latitude: 37.9297, longitude: 23.7446, lineIds: ["line2"] },
+  { id: "l2-alimos", name: "Alimos", nameEl: "Άλιμος", latitude: 37.9182, longitude: 23.7446, lineIds: ["line2"] },
+  { id: "l2-argyroupoli", name: "Argyroupoli", nameEl: "Αργυρούπολη", latitude: 37.9032, longitude: 23.7460, lineIds: ["line2"] },
+  { id: "l2-elliniko", name: "Elliniko", nameEl: "Ελληνικό", latitude: 37.8927, longitude: 23.7473, lineIds: ["line2"] },
 
   // =========================================================================
   // LINE 3 (Blue) - Dimotiko Theatro to Airport
   // =========================================================================
   { id: "l3-dimotiko", name: "Dimotiko Theatro", nameEl: "Δημοτικό Θέατρο", latitude: 37.9429, longitude: 23.6476, lineIds: ["line3"] },
-  // Piraeus is interchange with Line 1 — already defined above
-  { id: "l3-maniatika", name: "Maniatika", nameEl: "Μανιάτικα", latitude: 37.9595, longitude: 23.6398, lineIds: ["line3"] },
-  { id: "l3-nikaia", name: "Nikaia", nameEl: "Νίκαια", latitude: 37.9658, longitude: 23.6473, lineIds: ["line3"] },
-  { id: "l3-korydallos", name: "Korydallos", nameEl: "Κορυδαλλός", latitude: 37.9771, longitude: 23.6504, lineIds: ["line3"] },
-  { id: "l3-ag-varvara", name: "Agia Varvara", nameEl: "Αγία Βαρβάρα", latitude: 37.9900, longitude: 23.6593, lineIds: ["line3"] },
-  { id: "l3-ag-marina", name: "Agia Marina", nameEl: "Αγία Μαρίνα", latitude: 37.9969, longitude: 23.6679, lineIds: ["line3"] },
-  { id: "l3-egaleo", name: "Egaleo", nameEl: "Αιγάλεω", latitude: 37.9920, longitude: 23.6819, lineIds: ["line3"] },
-  { id: "l3-eleonas", name: "Eleonas", nameEl: "Ελαιώνας", latitude: 37.9877, longitude: 23.6933, lineIds: ["line3"] },
-  { id: "l3-kerameikos", name: "Kerameikos", nameEl: "Κεραμεικός", latitude: 37.9786, longitude: 23.7114, lineIds: ["line3"] },
-  // Monastiraki is interchange with Line 1 — already defined above
-  // Syntagma is interchange with Line 2 — already defined above
+  { id: "l3-maniatika", name: "Maniatika", nameEl: "Μανιάτικα", latitude: 37.9596, longitude: 23.6399, lineIds: ["line3"] },
+  { id: "l3-nikaia", name: "Nikaia", nameEl: "Νίκαια", latitude: 37.9659, longitude: 23.6474, lineIds: ["line3"] },
+  { id: "l3-korydallos", name: "Korydallos", nameEl: "Κορυδαλλός", latitude: 37.9772, longitude: 23.6506, lineIds: ["line3"] },
+  { id: "l3-ag-varvara", name: "Agia Varvara", nameEl: "Αγία Βαρβάρα", latitude: 37.9901, longitude: 23.6595, lineIds: ["line3"] },
+  { id: "l3-ag-marina", name: "Agia Marina", nameEl: "Αγία Μαρίνα", latitude: 37.9970, longitude: 23.6681, lineIds: ["line3"] },
+  { id: "l3-egaleo", name: "Egaleo", nameEl: "Αιγάλεω", latitude: 37.9921, longitude: 23.6821, lineIds: ["line3"] },
+  { id: "l3-eleonas", name: "Eleonas", nameEl: "Ελαιώνας", latitude: 37.9878, longitude: 23.6935, lineIds: ["line3"] },
+  { id: "l3-kerameikos", name: "Kerameikos", nameEl: "Κεραμεικός", latitude: 37.9787, longitude: 23.7115, lineIds: ["line3"] },
+  // Monastiraki, Syntagma, Evangelismos
   { id: "l3-evangelismos", name: "Evangelismos", nameEl: "Ευαγγελισμός", latitude: 37.9764, longitude: 23.7469, lineIds: ["line3"] },
-  { id: "l3-megaro-moussikis", name: "Megaro Moussikis", nameEl: "Μέγαρο Μουσικής", latitude: 37.9787, longitude: 23.7538, lineIds: ["line3"] },
-  { id: "l3-ambelokipi", name: "Ambelokipi", nameEl: "Αμπελόκηποι", latitude: 37.9909, longitude: 23.7601, lineIds: ["line3"] },
-  { id: "l3-panormou", name: "Panormou", nameEl: "Πανόρμου", latitude: 37.9928, longitude: 23.7667, lineIds: ["line3"] },
-  { id: "l3-katehaki", name: "Katehaki", nameEl: "Κατεχάκη", latitude: 37.9931, longitude: 23.7764, lineIds: ["line3"] },
-  { id: "l3-ethniki-amyna", name: "Ethniki Amyna", nameEl: "Εθνική Άμυνα", latitude: 38.0000, longitude: 23.7856, lineIds: ["line3"] },
-  { id: "l3-holargos", name: "Holargos", nameEl: "Χολαργός", latitude: 38.0017, longitude: 23.8122, lineIds: ["line3"] },
-  { id: "l3-nomismatokopio", name: "Nomismatokopio", nameEl: "Νομισματοκοπείο", latitude: 38.0093, longitude: 23.8053, lineIds: ["line3"] },
-  { id: "l3-ag-paraskevi", name: "Agia Paraskevi", nameEl: "Αγία Παρασκευή", latitude: 38.0125, longitude: 23.8169, lineIds: ["line3"] },
-  { id: "l3-halandri", name: "Halandri", nameEl: "Χαλάνδρι", latitude: 38.0217, longitude: 23.8208, lineIds: ["line3"] },
-  { id: "l3-douk-plakentias", name: "Douk. Plakentias", nameEl: "Δουκ. Πλακεντίας", latitude: 38.0232, longitude: 23.8238, lineIds: ["line3", "suburban"], isInterchange: true },
-  { id: "l3-pallini", name: "Pallini", nameEl: "Παλλήνη", latitude: 38.0053, longitude: 23.8697, lineIds: ["line3"] },
-  { id: "l3-paiania-kantza", name: "Paiania-Kantza", nameEl: "Παιανία-Κάντζα", latitude: 37.9842, longitude: 23.8700, lineIds: ["line3"] },
-  { id: "l3-koropi", name: "Koropi", nameEl: "Κορωπί", latitude: 37.9128, longitude: 23.8958, lineIds: ["line3"] },
-  { id: "l3-airport", name: "Airport", nameEl: "Αεροδρόμιο", latitude: 37.9365, longitude: 23.9484, lineIds: ["line3"] },
+  { id: "l3-megaro-moussikis", name: "Megaro Moussikis", nameEl: "Μέγαρο Μουσικής", latitude: 37.9788, longitude: 23.7539, lineIds: ["line3"] },
+  { id: "l3-ambelokipi", name: "Ambelokipi", nameEl: "Αμπελόκηποι", latitude: 37.9910, longitude: 23.7602, lineIds: ["line3"] },
+  { id: "l3-panormou", name: "Panormou", nameEl: "Πανόρμου", latitude: 37.9929, longitude: 23.7668, lineIds: ["line3"] },
+  { id: "l3-katehaki", name: "Katehaki", nameEl: "Κατεχάκη", latitude: 37.9932, longitude: 23.7766, lineIds: ["line3"] },
+  { id: "l3-ethniki-amyna", name: "Ethniki Amyna", nameEl: "Εθνική Άμυνα", latitude: 38.0001, longitude: 23.7857, lineIds: ["line3"] },
+  { id: "l3-holargos", name: "Holargos", nameEl: "Χολαργός", latitude: 38.0066, longitude: 23.7927, lineIds: ["line3"] },
+  { id: "l3-nomismatokopio", name: "Nomismatokopio", nameEl: "Νομισματοκοπείο", latitude: 38.0094, longitude: 23.8054, lineIds: ["line3"] },
+  { id: "l3-ag-paraskevi", name: "Agia Paraskevi", nameEl: "Αγία Παρασκευή", latitude: 38.0126, longitude: 23.8169, lineIds: ["line3"] },
+  { id: "l3-halandri", name: "Halandri", nameEl: "Χαλάνδρι", latitude: 38.0218, longitude: 23.8209, lineIds: ["line3"] },
+  { id: "l3-douk-plakentias", name: "Douk. Plakentias", nameEl: "Δουκ. Πλακεντίας", latitude: 38.0233, longitude: 23.8239, lineIds: ["line3", "suburban"], isInterchange: true },
+  { id: "l3-pallini", name: "Pallini", nameEl: "Παλλήνη", latitude: 38.0054, longitude: 23.8696, lineIds: ["line3"] },
+  { id: "l3-paiania-kantza", name: "Paiania-Kantza", nameEl: "Παιανία-Κάντζα", latitude: 37.9837, longitude: 23.8789, lineIds: ["line3"] },
+  { id: "l3-koropi", name: "Koropi", nameEl: "Κορωπί", latitude: 37.9130, longitude: 23.9122, lineIds: ["line3"] },
+  { id: "l3-airport", name: "Airport", nameEl: "Αεροδρόμιο", latitude: 37.9364, longitude: 23.9369, lineIds: ["line3"] },
 
   // =========================================================================
   // TRAM — T6: Syntagma → (south on Syngrou) → coast → Pikrodafni
@@ -224,8 +222,7 @@ const athensLines: TransitLine[] = [
       [23.8042, 38.0662], // KAT
       [23.8083, 38.0733], // Kifissia
     ],
-  }
-  ,
+  },
   {
     id: "line2",
     name: "Line 2 (Red)",
@@ -254,8 +251,7 @@ const athensLines: TransitLine[] = [
       [23.7460, 37.9032], // Argyroupoli
       [23.7473, 37.8927], // Elliniko
     ],
-  }
-  ,
+  },
   {
     id: "line3",
     name: "Line 3 (Blue)",
@@ -293,8 +289,7 @@ const athensLines: TransitLine[] = [
       [23.9122, 37.9130], // Koropi
       [23.9369, 37.9364], // Airport (Eleftherios Venizelos)
     ],
-  }
-  ,
+  },
   {
     id: "t6",
     name: "Tram T6 (Syntagma - Pikrodafni)",

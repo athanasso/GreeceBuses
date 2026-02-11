@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Greece Buses",
-    "slug": "greece-buses",
-    "version": "2.0.1",
+    "name": "Greece Transit",
+    "slug": "greece-transit",
+    "version": "2.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "greecebuses",
+    "scheme": "greecetransit",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -28,7 +28,7 @@
           "apiKey": "AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8"
         }
       },
-      "package": "com.athanasso.GreeceBuses"
+      "package": "com.athanasso.greecetransit"
     },
     "web": {
       "output": "static",

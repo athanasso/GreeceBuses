@@ -1,4 +1,4 @@
-# Greece Buses 🚌
+# Greece Transit 🚌
 
 A modern React Native mobile app for tracking public transportation in Athens and Thessaloniki in real-time. Built with Expo and powered by the OASA (Athens) and OASTH (Thessaloniki) Telematics APIs.
 

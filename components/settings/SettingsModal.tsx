@@ -27,7 +27,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
   const colors = Colors[theme];
 
   const handleGithubPress = () => {
-    Linking.openURL("https://github.com/athanasso/AthensBuses");
+    Linking.openURL("https://github.com/athanasso/GreeceTransit");
   };
 
   return (
@@ -293,7 +293,7 @@ export function SettingsModal({ visible, onClose }: SettingsModalProps) {
                   {t.developedBy} athanasso
                 </Text>
                 <Text style={[styles.version, { color: colors.textSecondary }]}>
-                  {t.version} 2.0.1
+                  {t.version} 2.1.1
                 </Text>
 
                 <TouchableOpacity

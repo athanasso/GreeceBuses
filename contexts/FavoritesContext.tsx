@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 
-const FAVORITES_STORAGE_KEY = "@athens_buses_favorites";
+const FAVORITES_STORAGE_KEY = "@greece_transit_favorites";
 
 export interface FavoriteStop {
   id: string;

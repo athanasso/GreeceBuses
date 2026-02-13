@@ -8,11 +8,12 @@ import { Colors } from "@/constants/theme";
 import { useCity } from "@/contexts/CityContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const { theme: colorScheme } = useTheme();
   const { t } = useLanguage();
-  const { isAthens } = useCity();
+  const { isAthens } = useCity();  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -24,8 +25,8 @@ export default function TabLayout() {
           borderTopColor: Colors[colorScheme].border,
           borderTopWidth: 1,
           paddingTop: 8,
-          paddingBottom: Platform.OS === "ios" ? 24 : 8,
-          height: Platform.OS === "ios" ? 84 : 64,
+          paddingBottom: Platform.OS === "ios" ? 24 : 8 + insets.bottom,
+          height: Platform.OS === "ios" ? 84 : 64 + insets.bottom,
         },
         headerShown: false,
         tabBarButton: HapticTab,
